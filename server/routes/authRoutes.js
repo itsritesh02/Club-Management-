@@ -1,8 +1,13 @@
 import express from "express";
 
-import { register, login, getProfile } from "../controllers/authController.js";
+import {
+  register,
+  login,
+  getProfile,
+  verifyOTP,
+} from "../controllers/authController.js";
 
-import {authMiddleware,authorizeRoles} from "../middleware/authMiddleware.js";
+import {authMiddleware} from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -12,11 +17,6 @@ router.post("/login", login);
 
 router.get("/profile", authMiddleware, getProfile);
 
-router.get("/admin", authMiddleware, authorizeRoles("admin"), (req, res) => {
-  res.json({
-    success: true,
-    message: "Welcome Admin",
-  });
-});
+router.post("/verify-otp", verifyOTP);
 
 export default router;
