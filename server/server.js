@@ -4,33 +4,23 @@ import express from "express";
 import cors from "cors";
 
 import connectDB from "./config/db.js";
+
 import authRoutes from "./routes/authRoutes.js";
+import memberRoutes from "./routes/memberRoutes.js";
 
 const app = express();
-
-// ==========================================
-// MIDDLEWARE
-// ==========================================
 
 app.use(cors());
 
 app.use(express.json());
 
-// ==========================================
-// DATABASE
-// ==========================================
-
 connectDB();
 
-// ==========================================
-// ROUTES
-// ==========================================
-
+// AUTH ROUTES
 app.use("/api/auth", authRoutes);
 
-// ==========================================
-// HOME ROUTE
-// ==========================================
+// MEMBER ROUTES
+app.use("/api/members", memberRoutes);
 
 app.get("/", (req, res) => {
   res.json({
@@ -38,10 +28,6 @@ app.get("/", (req, res) => {
     message: "Club Management API is running",
   });
 });
-
-// ==========================================
-// SERVER
-// ==========================================
 
 const PORT = process.env.PORT || 5000;
 
