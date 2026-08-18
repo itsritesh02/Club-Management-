@@ -5,10 +5,9 @@ import {
 } from "react-router-dom";
 
 import Landing from "./pages/Landing/Landing";
-
-import Login from "./pages/Login/Login";
-
+import Login from "./pages/Login/Login"
 import VerifyOTP from "./pages/VerifyOTP/VerifyOTP";
+import Dashboard from "./pages/Dashboard/Dashboard";
 
 function App() {
   return (
@@ -16,22 +15,24 @@ function App() {
 
       <Routes>
 
-        {/* LANDING */}
         <Route
           path="/"
           element={<Landing />}
         />
 
-        {/* ADMIN LOGIN */}
         <Route
           path="/login"
-          element={<Login />}
+          element={<Login/>}
         />
 
-        {/* OTP */}
         <Route
           path="/verify-otp"
           element={<VerifyOTP />}
+        />
+
+        <Route
+          path="/dashboard"
+          element={<Dashboard />}
         />
 
       </Routes>
