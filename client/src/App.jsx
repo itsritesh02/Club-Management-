@@ -5,9 +5,11 @@ import {
 } from "react-router-dom";
 
 import Landing from "./pages/Landing/Landing";
-import Login from "./pages/Login/Login"
+import Login from "./pages/Login/Login";
 import VerifyOTP from "./pages/VerifyOTP/VerifyOTP";
 import Dashboard from "./pages/Dashboard/Dashboard";
+import Members from "./pages/Members/Members";
+import AddMember from "./pages/AddMember/AddMember";
 
 function App() {
   return (
@@ -22,7 +24,7 @@ function App() {
 
         <Route
           path="/login"
-          element={<Login/>}
+          element={<Login />}
         />
 
         <Route
@@ -33,6 +35,16 @@ function App() {
         <Route
           path="/dashboard"
           element={<Dashboard />}
+        />
+
+        <Route
+          path="/members"
+          element={<Members />}
+        />
+
+        <Route
+          path="/members/add"
+          element={<AddMember />}
         />
 
       </Routes>
