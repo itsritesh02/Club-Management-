@@ -1,0 +1,452 @@
+* {
+  box-sizing: border-box;
+}
+
+.members-page {
+  min-height: 100vh;
+  display: flex;
+  background: #f8fafc;
+}
+
+/* ==========================================
+   SIDEBAR
+========================================== */
+
+.members-sidebar {
+  width: 250px;
+  min-height: 100vh;
+
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 25px 15px;
+
+  background: white;
+
+  border-right: 1px solid #e5e7eb;
+}
+
+.members-logo {
+  padding: 5px 15px 30px;
+
+  font-size: 23px;
+  font-weight: 800;
+
+  color: #111827;
+}
+
+.members-logo span {
+  color: #2563eb;
+}
+
+/* ==========================================
+   NAVIGATION
+========================================== */
+
+.members-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.members-nav button {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 13px 15px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #64748b;
+
+  font-size: 14px;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.members-nav button:hover {
+  background: #f1f5f9;
+  color: #2563eb;
+}
+
+.members-nav button.active {
+  background: #eff6ff;
+  color: #2563eb;
+
+  font-weight: 600;
+}
+
+/* ==========================================
+   LOGOUT
+========================================== */
+
+.members-logout {
+  width: 100%;
+
+  margin-top: auto;
+
+  padding: 13px 15px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #fef2f2;
+
+  color: #dc2626;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+/* ==========================================
+   MAIN
+========================================== */
+
+.members-main {
+  width: calc(100% - 250px);
+
+  margin-left: 250px;
+
+  padding: 35px 40px;
+}
+
+/* ==========================================
+   HEADER
+========================================== */
+
+.members-header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 25px;
+}
+
+.members-header h1 {
+  margin: 0;
+
+  color: #111827;
+
+  font-size: 30px;
+}
+
+.members-header p {
+  margin: 6px 0 0;
+
+  color: #64748b;
+
+  font-size: 14px;
+}
+
+.add-member-button {
+  padding: 11px 18px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #2563eb;
+
+  color: white;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.add-member-button:hover {
+  background: #1d4ed8;
+}
+
+/* ==========================================
+   ERROR
+========================================== */
+
+.members-error {
+  margin-bottom: 20px;
+
+  padding: 13px 15px;
+
+  border: 1px solid #fecaca;
+
+  border-radius: 8px;
+
+  background: #fef2f2;
+
+  color: #dc2626;
+
+  font-size: 13px;
+}
+
+/* ==========================================
+   LOADING
+========================================== */
+
+.members-loading {
+  padding: 80px;
+
+  text-align: center;
+
+  color: #64748b;
+
+  background: white;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 12px;
+}
+
+/* ==========================================
+   CARD
+========================================== */
+
+.members-card {
+  background: white;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 12px;
+
+  overflow: hidden;
+}
+
+.members-card-header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 22px 25px;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.members-card-header h2 {
+  margin: 0;
+
+  font-size: 18px;
+
+  color: #111827;
+}
+
+.members-card-header p {
+  margin: 5px 0 0;
+
+  color: #64748b;
+
+  font-size: 12px;
+}
+
+.refresh-button {
+  padding: 8px 13px;
+
+  border: 1px solid #dbeafe;
+
+  border-radius: 7px;
+
+  background: #eff6ff;
+
+  color: #2563eb;
+
+  font-size: 12px;
+
+  cursor: pointer;
+}
+
+/* ==========================================
+   EMPTY
+========================================== */
+
+.members-empty {
+  padding: 80px 20px;
+
+  text-align: center;
+}
+
+.members-empty-icon {
+  margin-bottom: 12px;
+
+  font-size: 40px;
+}
+
+.members-empty h3 {
+  margin: 0;
+
+  color: #111827;
+
+  font-size: 18px;
+}
+
+.members-empty p {
+  margin: 8px 0 18px;
+
+  color: #94a3b8;
+
+  font-size: 13px;
+}
+
+/* ==========================================
+   TABLE
+========================================== */
+
+.members-table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+}
+
+.members-table {
+  width: 100%;
+
+  min-width: 950px;
+
+  border-collapse: collapse;
+}
+
+.members-table th {
+  padding: 14px 20px;
+
+  background: #f8fafc;
+
+  color: #64748b;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  text-align: left;
+
+  white-space: nowrap;
+}
+
+.members-table td {
+  padding: 16px 20px;
+
+  border-top: 1px solid #f1f5f9;
+
+  color: #475569;
+
+  font-size: 13px;
+
+  white-space: nowrap;
+}
+
+.members-table td strong {
+  color: #111827;
+}
+
+.members-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* ==========================================
+   STATUS
+========================================== */
+
+.member-status {
+  display: inline-block;
+
+  padding: 5px 9px;
+
+  border-radius: 20px;
+
+  font-size: 11px;
+
+  font-weight: 600;
+
+  text-transform: capitalize;
+}
+
+.member-status.active {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.member-status.inactive {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.member-status.expired {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 700px) {
+  .members-sidebar {
+    width: 70px;
+
+    padding: 20px 10px;
+  }
+
+  .members-logo {
+    padding: 5px 0 25px;
+
+    font-size: 0;
+
+    text-align: center;
+  }
+
+  .members-logo::before {
+    content: "C";
+
+    font-size: 23px;
+  }
+
+  .members-nav button {
+    justify-content: center;
+
+    padding: 13px 5px;
+
+    font-size: 0;
+  }
+
+  .members-nav button:first-letter {
+    font-size: 18px;
+  }
+
+  .members-logout {
+    font-size: 0;
+
+    text-align: center;
+  }
+
+  .members-main {
+    width: calc(100% - 70px);
+
+    margin-left: 70px;
+
+    padding: 25px 15px;
+  }
+
+  .members-header {
+    align-items: flex-start;
+  }
+
+  .members-header h1 {
+    font-size: 24px;
+  }
+}
