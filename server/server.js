@@ -7,6 +7,7 @@ import connectDB from "./config/db.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import memberRoutes from "./routes/memberRoutes.js";
+import entryRoutes from "./routes/entryRoutes.js";
 
 const app = express();
 
@@ -21,6 +22,8 @@ app.use("/api/auth", authRoutes);
 
 // MEMBER ROUTES
 app.use("/api/members", memberRoutes);
+
+app.use("/api/entries", entryRoutes);
 
 app.get("/", (req, res) => {
   res.json({
