@@ -15,6 +15,13 @@ export const authMiddleware = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    if (decoded.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
     req.user = decoded;
 
     next();
@@ -24,20 +31,4 @@ export const authMiddleware = (req, res, next) => {
       message: "Invalid or expired token",
     });
   }
-};
-
-
-
-
-export const authorizeRoles = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied",
-      });
-    }
-
-    next();
-  };
 };

@@ -1,31 +1,38 @@
 import "dotenv/config";
 
 import express from "express";
+
 import cors from "cors";
 
 import connectDB from "./config/db.js";
 
 import authRoutes from "./routes/authRoutes.js";
-import memberRoutes from "./routes/memberRoutes.js";
-import entryRoutes from "./routes/entryRoutes.js";
-import paymentRoutes from "./routes/paymentRoutes.js";
 
 const app = express();
+
+// ==========================================
+// MIDDLEWARE
+// ==========================================
 
 app.use(cors());
 
 app.use(express.json());
 
+// ==========================================
+// DATABASE
+// ==========================================
+
 connectDB();
 
+// ==========================================
 // AUTH ROUTES
+// ==========================================
+
 app.use("/api/auth", authRoutes);
 
-// MEMBER ROUTES
-app.use("/api/members", memberRoutes);
-
-app.use("/api/entries", entryRoutes);
-app.use("/api/payments", paymentRoutes);
+// ==========================================
+// HOME
+// ==========================================
 
 app.get("/", (req, res) => {
   res.json({
@@ -33,6 +40,10 @@ app.get("/", (req, res) => {
     message: "Club Management API is running",
   });
 });
+
+// ==========================================
+// SERVER
+// ==========================================
 
 const PORT = process.env.PORT || 5000;
 

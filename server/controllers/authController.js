@@ -1,98 +1,13 @@
-import User from "../models/User.js";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 import OTP from "../models/OTP.js";
+
 import generateOTP from "../utils/generateOTP.js";
+
 import { sendOTPEmail } from "../services/emailService.js";
 
 // ==========================================
-// REGISTER
-// ==========================================
-
-export const register = async (req, res) => {
-  try {
-    const { name, email, phone, password, role } = req.body;
-
-    // Check required fields
-    if (!name || !email || !phone || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required",
-      });
-    }
-
-    // Check existing user
-    const existingUser = await User.findOne({
-      $or: [{ email }, { phone }],
-    });
-
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: "Email or phone already registered",
-      });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
-    const user = await User.create({
-      name,
-      email,
-      phone,
-      password: hashedPassword,
-      role: role || "staff",
-    });
-
-    console.log("USER CREATED:", user.email);
-
-    // ==========================================
-    // GENERATE OTP
-    // ==========================================
-
-    const otp = generateOTP();
-
-    console.log("GENERATED OTP:", otp);
-
-    // Delete old OTP
-    await OTP.deleteMany({
-      email,
-    });
-
-    // Save new OTP
-    const otpRecord = await OTP.create({
-      email,
-      otp,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-    });
-
-    console.log("OTP SAVED:", otpRecord);
-
-    // Send OTP email
-    await sendOTPEmail(email, otp);
-
-    console.log("OTP EMAIL SENT TO:", email);
-
-    // Response
-    res.status(201).json({
-      success: true,
-      message: "Registration successful. OTP sent to your email.",
-      email: user.email,
-    });
-  } catch (error) {
-    console.error("REGISTER ERROR:", error);
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// ==========================================
-// LOGIN
+// ADMIN LOGIN
 // ==========================================
 
 export const login = async (req, res) => {
@@ -107,70 +22,51 @@ export const login = async (req, res) => {
       });
     }
 
-    // Find user
-    const user = await User.findOne({
-      email,
+    // Check Admin email
+    if (email.toLowerCase() !== process.env.ADMIN_EMAIL.toLowerCase()) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    // Check Admin password
+    if (password !== process.env.ADMIN_PASSWORD) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+
+    console.log("ADMIN OTP:", otp);
+
+    // Delete previous OTP
+    await OTP.deleteMany({
+      email: process.env.ADMIN_EMAIL.toLowerCase(),
     });
 
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
+    // Save OTP
+    await OTP.create({
+      email: process.env.ADMIN_EMAIL.toLowerCase(),
+      otp,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    });
 
-    // Compare password
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    // Send OTP
+    await sendOTPEmail(process.env.ADMIN_EMAIL, otp);
 
-    if (!isPasswordCorrect) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
-
-    // Check email verification
-    if (!user.isVerified) {
-      return res.status(403).json({
-        success: false,
-        message: "Please verify your email first",
-      });
-    }
-
-    // Generate JWT
-    const token = jwt.sign(
-      {
-        userId: user._id,
-        role: user.role,
-      },
-
-      process.env.JWT_SECRET,
-
-      {
-        expiresIn: "7d",
-      },
-    );
-
-    // Response
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: "Login successful",
-
-      token,
-
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        isVerified: user.isVerified,
-      },
+      message: "OTP sent to admin email",
+      email: process.env.ADMIN_EMAIL,
     });
   } catch (error) {
     console.error("LOGIN ERROR:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -183,6 +79,9 @@ export const login = async (req, res) => {
 
 export const verifyOTP = async (req, res) => {
   try {
+    // Debug
+    console.log("VERIFY BODY:", req.body);
+
     const { email, otp } = req.body;
 
     // Check fields
@@ -193,16 +92,23 @@ export const verifyOTP = async (req, res) => {
       });
     }
 
-    console.log("VERIFY OTP REQUEST:", email, otp);
+    // Check Admin email
+    if (email.toLowerCase() !== process.env.ADMIN_EMAIL.toLowerCase()) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
 
     // Find OTP
     const otpRecord = await OTP.findOne({
-      email,
-      otp,
+      email: email.toLowerCase(),
+      otp: otp.toString(),
     });
 
-    console.log("OTP RECORD FOUND:", otpRecord);
+    console.log("OTP RECORD:", otpRecord);
 
+    // OTP not found
     if (!otpRecord) {
       return res.status(400).json({
         success: false,
@@ -222,36 +128,41 @@ export const verifyOTP = async (req, res) => {
       });
     }
 
-    // Find user
-    const user = await User.findOne({
-      email,
-    });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    // Verify user
-    user.isVerified = true;
-
-    await user.save();
-
     // Delete OTP after successful verification
     await OTP.deleteOne({
       _id: otpRecord._id,
     });
 
-    res.status(200).json({
+    // Generate JWT
+    const token = jwt.sign(
+      {
+        email: process.env.ADMIN_EMAIL,
+        role: "admin",
+      },
+
+      process.env.JWT_SECRET,
+
+      {
+        expiresIn: "7d",
+      },
+    );
+
+    // Success
+    return res.status(200).json({
       success: true,
-      message: "Email verified successfully",
+      message: "OTP verified successfully",
+
+      token,
+
+      admin: {
+        email: process.env.ADMIN_EMAIL,
+        role: "admin",
+      },
     });
   } catch (error) {
     console.error("VERIFY OTP ERROR:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -259,28 +170,23 @@ export const verifyOTP = async (req, res) => {
 };
 
 // ==========================================
-// GET PROFILE
+// ADMIN PROFILE
 // ==========================================
 
 export const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select("-password");
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      user,
+
+      admin: {
+        email: process.env.ADMIN_EMAIL,
+        role: "admin",
+      },
     });
   } catch (error) {
     console.error("PROFILE ERROR:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });

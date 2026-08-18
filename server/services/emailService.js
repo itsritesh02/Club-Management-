@@ -1,4 +1,3 @@
-import "dotenv/config";
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
@@ -13,20 +12,23 @@ const transporter = nodemailer.createTransport({
 export const sendOTPEmail = async (email, otp) => {
   await transporter.sendMail({
     from: process.env.EMAIL_USER,
+
     to: email,
 
-    subject: "Club Management - OTP Verification",
+    subject: "Club Management - Admin OTP",
 
     html: `
       <div style="font-family: Arial; padding: 20px;">
 
         <h2>Club Management System</h2>
 
-        <p>Your OTP for email verification is:</p>
+        <p>Your Admin login OTP is:</p>
 
         <h1>${otp}</h1>
 
-        <p>This OTP will expire in 5 minutes.</p>
+        <p>
+          This OTP will expire in 5 minutes.
+        </p>
 
         <p>
           If you did not request this OTP,
