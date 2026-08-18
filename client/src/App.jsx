@@ -5,7 +5,10 @@ import {
 } from "react-router-dom";
 
 import Landing from "./pages/Landing/Landing";
+
 import Login from "./pages/Login/Login";
+
+import VerifyOTP from "./pages/VerifyOTP/VerifyOTP";
 
 function App() {
   return (
@@ -19,10 +22,16 @@ function App() {
           element={<Landing />}
         />
 
-        {/* LOGIN */}
+        {/* ADMIN LOGIN */}
         <Route
           path="/login"
           element={<Login />}
+        />
+
+        {/* OTP */}
+        <Route
+          path="/verify-otp"
+          element={<VerifyOTP />}
         />
 
       </Routes>
