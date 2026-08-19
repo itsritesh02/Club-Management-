@@ -16,14 +16,13 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://club-management-ilac.vercel.app",
+  "https://club-management-lilac.vercel.app",
 ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests without an origin
-      // Example: Postman / server-to-server
+      // Postman / requests without origin
       if (!origin) {
         return callback(null, true);
       }
@@ -32,7 +31,9 @@ app.use(
         return callback(null, true);
       }
 
-      return callback(new Error(`CORS blocked: ${origin}`));
+      console.log("CORS BLOCKED:", origin);
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
     },
 
     credentials: true,
@@ -56,7 +57,7 @@ app.use(express.json());
 connectDB();
 
 // ==========================================
-// HOME / HEALTH CHECK
+// HOME
 // ==========================================
 
 app.get("/", (req, res) => {
@@ -67,13 +68,13 @@ app.get("/", (req, res) => {
 });
 
 // ==========================================
-// AUTH ROUTES
+// AUTH
 // ==========================================
 
 app.use("/api/auth", authRoutes);
 
 // ==========================================
-// MEMBER ROUTES
+// MEMBERS
 // ==========================================
 
 app.use("/api/members", memberRoutes);
