@@ -10,6 +10,7 @@ import VerifyOTP from "./pages/VerifyOTP/VerifyOTP";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Members from "./pages/Members/Members";
 import AddMember from "./pages/AddMember/AddMember";
+import MemberDetails from "./pages/MemberDetails/MemberDetails";
 
 function App() {
   return (
@@ -45,6 +46,11 @@ function App() {
         <Route
           path="/members/add"
           element={<AddMember />}
+        />
+
+        <Route
+          path="/members/:id"
+          element={<MemberDetails />}
         />
 
       </Routes>
