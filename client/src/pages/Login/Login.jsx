@@ -1,6 +1,6 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 import "./Login.css";
 
@@ -11,7 +11,6 @@ function Login() {
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   // ==========================================
   // LOGIN
@@ -20,10 +19,19 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    setError("");
+    // =========================
+    // VALIDATION
+    // =========================
 
     if (!email || !password) {
-      setError("Email and password are required");
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Information",
+        text: "Please enter email and password.",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#2563eb",
+      });
+
       return;
     }
 
@@ -48,26 +56,62 @@ function Login() {
 
       const data = await response.json();
 
+      // =========================
+      // LOGIN ERROR
+      // =========================
+
       if (!response.ok) {
-        setError(data.message || "Login failed");
+        Swal.fire({
+          icon: "error",
+          title: "Login Failed",
+          text: data.message || "Invalid email or password.",
+          confirmButtonText: "Try Again",
+          confirmButtonColor: "#dc2626",
+        });
+
         return;
       }
 
-      // Save email for OTP page
+      // =========================
+      // SAVE EMAIL
+      // =========================
+
       sessionStorage.setItem(
         "adminEmail",
         email
       );
 
-      // Go to OTP page
+      // =========================
+      // SUCCESS
+      // =========================
+
+      await Swal.fire({
+        icon: "success",
+        title: "Login Successful",
+        text: "OTP has been sent to your email.",
+        confirmButtonText: "Verify OTP",
+        confirmButtonColor: "#2563eb",
+        timer: 2000,
+        timerProgressBar: true,
+      });
+
+      // =========================
+      // GO TO OTP
+      // =========================
+
       navigate("/verify-otp");
 
     } catch (error) {
       console.error("LOGIN ERROR:", error);
 
-      setError(
-        "Unable to connect to server"
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Server Error",
+        text: "Unable to connect to server. Please try again.",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#dc2626",
+      });
+
     } finally {
       setLoading(false);
     }
@@ -160,14 +204,6 @@ function Login() {
 
             </div>
 
-            {/* ERROR */}
-
-            {error && (
-              <div className="login-error">
-                {error}
-              </div>
-            )}
-
             {/* BUTTON */}
 
             <button
@@ -190,6 +226,7 @@ function Login() {
         </div>
 
       </div>
+
     </div>
   );
 }
