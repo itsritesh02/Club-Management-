@@ -39,6 +39,15 @@ function AddMember() {
   const [loading, setLoading] = useState(false);
 
   // ==========================================
+  // API BASE URL
+  // ==========================================
+
+  const API_URL = (
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:5000"
+  ).replace(/\/$/, "");
+
+  // ==========================================
   // HANDLE INPUT
   // ==========================================
 
@@ -75,7 +84,8 @@ function AddMember() {
             ? Number(value) || 0
             : Number(prev.cardAmount) || 0;
 
-        updatedData.totalAmount = cash + upi + card;
+        updatedData.totalAmount =
+          cash + upi + card;
       }
 
       return updatedData;
@@ -144,7 +154,8 @@ function AddMember() {
       await Swal.fire({
         icon: "warning",
         title: "Login Required",
-        text: "Your session has expired. Please login again.",
+        text:
+          "Your session has expired. Please login again.",
         confirmButtonText: "Login",
         confirmButtonColor: "#2563eb",
       });
@@ -225,11 +236,17 @@ function AddMember() {
     // PAYMENT TOTAL
     // ==========================================
 
-    const cash = Number(formData.cashAmount) || 0;
-    const upi = Number(formData.upiAmount) || 0;
-    const card = Number(formData.cardAmount) || 0;
+    const cash =
+      Number(formData.cashAmount) || 0;
 
-    const calculatedTotal = cash + upi + card;
+    const upi =
+      Number(formData.upiAmount) || 0;
+
+    const card =
+      Number(formData.cardAmount) || 0;
+
+    const calculatedTotal =
+      cash + upi + card;
 
     // ==========================================
     // CONFIRM ENTRY
@@ -267,7 +284,7 @@ function AddMember() {
 
           <p>
             <strong>Total Amount:</strong>
-            ₹${calculatedTotal}
+            ₹${calculatedTotal.toLocaleString("en-IN")}
           </p>
         </div>
       `,
@@ -292,21 +309,31 @@ function AddMember() {
 
       const bookingData = {
         name: formData.name.trim(),
+
         surname: formData.surname.trim(),
+
         contact: formData.contact.trim(),
+
         email: formData.email.trim(),
 
         dob: formData.dob,
+
         entryTime: formData.entryTime,
 
         reffBy: formData.reffBy.trim(),
 
         pax: formData.pax.trim(),
-        paxCount: Number(formData.paxCount) || 1,
-        couple: Boolean(formData.couple),
+
+        paxCount:
+          Number(formData.paxCount) || 1,
+
+        couple:
+          Boolean(formData.couple),
 
         cashAmount: cash,
+
         upiAmount: upi,
+
         cardAmount: card,
 
         totalAmount: calculatedTotal,
@@ -317,39 +344,64 @@ function AddMember() {
         withoutCover:
           Number(formData.withoutCover) || 0,
 
-        category: formData.category,
+        category:
+          formData.category,
 
-        tableNo: formData.tableNo.trim(),
+        tableNo:
+          formData.tableNo.trim(),
       };
 
+      // ==========================================
+      // POST MEMBER
+      // ==========================================
+
       const response = await fetch(
-        "http://localhost:5000/api/members",
+        `${API_URL}/api/members`,
         {
           method: "POST",
 
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+
+            Authorization:
+              `Bearer ${token}`,
           },
 
-          body: JSON.stringify(bookingData),
+          body:
+            JSON.stringify(bookingData),
         }
       );
 
-      const data = await response.json();
+      // ==========================================
+      // SAFE JSON RESPONSE
+      // ==========================================
+
+      let data = {};
+
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
 
       // ==========================================
       // TOKEN EXPIRED
       // ==========================================
 
       if (response.status === 401) {
-        localStorage.removeItem("adminToken");
-        localStorage.removeItem("admin");
+        localStorage.removeItem(
+          "adminToken"
+        );
+
+        localStorage.removeItem(
+          "admin"
+        );
 
         await Swal.fire({
           icon: "warning",
           title: "Session Expired",
-          text: "Your session has expired. Please login again.",
+          text:
+            "Your session has expired. Please login again.",
           confirmButtonText: "Login",
           confirmButtonColor: "#2563eb",
         });
@@ -363,7 +415,7 @@ function AddMember() {
       // ==========================================
 
       if (!response.ok) {
-        Swal.fire({
+        await Swal.fire({
           icon: "error",
           title: "Entry Failed",
           text:
@@ -418,7 +470,7 @@ function AddMember() {
         error
       );
 
-      Swal.fire({
+      await Swal.fire({
         icon: "error",
         title: "Server Error",
         text:
@@ -451,7 +503,9 @@ function AddMember() {
             CLUB ENTRY
           </span>
 
-          <h1>New Entry</h1>
+          <h1>
+            New Entry
+          </h1>
 
           <p>
             Register a guest and confirm their
@@ -463,7 +517,9 @@ function AddMember() {
         <button
           type="button"
           className="back-button"
-          onClick={() => navigate("/members")}
+          onClick={() =>
+            navigate("/members")
+          }
           disabled={loading}
         >
           ← Back to Members
@@ -509,7 +565,9 @@ function AddMember() {
 
             <div className="section-heading">
 
-              <span>01</span>
+              <span>
+                01
+              </span>
 
               <div>
 
@@ -541,6 +599,7 @@ function AddMember() {
                   placeholder="Enter first name"
                   value={formData.name}
                   onChange={handleChange}
+                  disabled={loading}
                 />
 
               </div>
@@ -559,6 +618,7 @@ function AddMember() {
                   placeholder="Enter surname"
                   value={formData.surname}
                   onChange={handleChange}
+                  disabled={loading}
                 />
 
               </div>
@@ -577,6 +637,7 @@ function AddMember() {
                   placeholder="Enter contact number"
                   value={formData.contact}
                   onChange={handleChange}
+                  disabled={loading}
                 />
 
               </div>
@@ -595,6 +656,7 @@ function AddMember() {
                   placeholder="guest@example.com"
                   value={formData.email}
                   onChange={handleChange}
+                  disabled={loading}
                 />
 
               </div>
@@ -612,6 +674,7 @@ function AddMember() {
                   name="dob"
                   value={formData.dob}
                   onChange={handleChange}
+                  disabled={loading}
                 />
 
               </div>
@@ -630,6 +693,7 @@ function AddMember() {
                   placeholder="Referred by"
                   value={formData.reffBy}
                   onChange={handleChange}
+                  disabled={loading}
                 />
 
               </div>
@@ -646,7 +710,9 @@ function AddMember() {
 
             <div className="section-heading">
 
-              <span>02</span>
+              <span>
+                02
+              </span>
 
               <div>
 
@@ -677,6 +743,7 @@ function AddMember() {
                   name="entryTime"
                   value={formData.entryTime}
                   onChange={handleChange}
+                  disabled={loading}
                 />
 
               </div>
@@ -693,6 +760,7 @@ function AddMember() {
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
+                  disabled={loading}
                 >
 
                   <option value="normal">
@@ -725,6 +793,7 @@ function AddMember() {
                   placeholder="e.g. T-12"
                   value={formData.tableNo}
                   onChange={handleChange}
+                  disabled={loading}
                 />
 
               </div>
@@ -743,6 +812,7 @@ function AddMember() {
                   placeholder="e.g. Adult / Guest"
                   value={formData.pax}
                   onChange={handleChange}
+                  disabled={loading}
                 />
 
               </div>
@@ -761,6 +831,7 @@ function AddMember() {
                   min="1"
                   value={formData.paxCount}
                   onChange={handleChange}
+                  disabled={loading}
                 />
 
               </div>
@@ -778,8 +849,11 @@ function AddMember() {
                   <input
                     type="checkbox"
                     name="couple"
-                    checked={formData.couple}
+                    checked={
+                      formData.couple
+                    }
                     onChange={handleChange}
+                    disabled={loading}
                   />
 
                   <span>
@@ -802,7 +876,9 @@ function AddMember() {
 
             <div className="section-heading">
 
-              <span>03</span>
+              <span>
+                03
+              </span>
 
               <div>
 
@@ -835,6 +911,7 @@ function AddMember() {
                   placeholder="0"
                   value={formData.withCover}
                   onChange={handleChange}
+                  disabled={loading}
                 />
 
               </div>
@@ -852,8 +929,11 @@ function AddMember() {
                   name="withoutCover"
                   min="0"
                   placeholder="0"
-                  value={formData.withoutCover}
+                  value={
+                    formData.withoutCover
+                  }
                   onChange={handleChange}
+                  disabled={loading}
                 />
 
               </div>
@@ -870,7 +950,9 @@ function AddMember() {
 
             <div className="section-heading">
 
-              <span>04</span>
+              <span>
+                04
+              </span>
 
               <div>
 
@@ -898,15 +980,20 @@ function AddMember() {
 
                 <div className="amount-input">
 
-                  <span>₹</span>
+                  <span>
+                    ₹
+                  </span>
 
                   <input
                     type="number"
                     name="cashAmount"
                     min="0"
                     placeholder="0"
-                    value={formData.cashAmount}
+                    value={
+                      formData.cashAmount
+                    }
                     onChange={handleChange}
+                    disabled={loading}
                   />
 
                 </div>
@@ -923,15 +1010,20 @@ function AddMember() {
 
                 <div className="amount-input">
 
-                  <span>₹</span>
+                  <span>
+                    ₹
+                  </span>
 
                   <input
                     type="number"
                     name="upiAmount"
                     min="0"
                     placeholder="0"
-                    value={formData.upiAmount}
+                    value={
+                      formData.upiAmount
+                    }
                     onChange={handleChange}
+                    disabled={loading}
                   />
 
                 </div>
@@ -948,15 +1040,20 @@ function AddMember() {
 
                 <div className="amount-input">
 
-                  <span>₹</span>
+                  <span>
+                    ₹
+                  </span>
 
                   <input
                     type="number"
                     name="cardAmount"
                     min="0"
                     placeholder="0"
-                    value={formData.cardAmount}
+                    value={
+                      formData.cardAmount
+                    }
                     onChange={handleChange}
+                    disabled={loading}
                   />
 
                 </div>
@@ -973,12 +1070,16 @@ function AddMember() {
 
                 <div className="amount-input total-input">
 
-                  <span>₹</span>
+                  <span>
+                    ₹
+                  </span>
 
                   <input
                     type="number"
                     name="totalAmount"
-                    value={formData.totalAmount}
+                    value={
+                      formData.totalAmount
+                    }
                     readOnly
                   />
 
@@ -1003,7 +1104,9 @@ function AddMember() {
             <button
               type="button"
               className="cancel-button"
-              onClick={() => navigate("/members")}
+              onClick={() =>
+                navigate("/members")
+              }
               disabled={loading}
             >
               Cancel
