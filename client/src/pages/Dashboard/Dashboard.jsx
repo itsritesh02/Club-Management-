@@ -12,6 +12,12 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   // ==========================================
+  // API URL
+  // ==========================================
+
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  // ==========================================
   // LOAD ADMIN
   // ==========================================
 
@@ -44,17 +50,46 @@ function Dashboard() {
           return;
         }
 
+        if (!API_URL) {
+          console.error(
+            "VITE_API_URL is not configured"
+          );
+
+          await Swal.fire({
+            icon: "error",
+            title: "Configuration Error",
+            text:
+              "API URL is not configured. Please check Vercel environment variables.",
+            confirmButtonText: "OK",
+          });
+
+          setLoading(false);
+          return;
+        }
+
         setLoading(true);
 
         const response = await fetch(
-          "http://localhost:5000/api/members",
+          `${API_URL}/api/members`,
           {
             method: "GET",
+
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
+
+        // ======================================
+        // RESPONSE
+        // ======================================
+
+        const data =
+          await response.json();
+
+        // ======================================
+        // TOKEN EXPIRED
+        // ======================================
 
         if (response.status === 401) {
           localStorage.removeItem(
@@ -71,27 +106,37 @@ function Dashboard() {
           });
 
           navigate("/login");
+
           return;
         }
 
-        const data =
-          await response.json();
+        // ======================================
+        // API ERROR
+        // ======================================
 
         if (!response.ok) {
-          Swal.fire({
+          await Swal.fire({
             icon: "error",
             title: "Unable to Load Data",
             text:
               data.message ||
               "Failed to fetch members.",
+            confirmButtonText: "OK",
           });
 
           return;
         }
 
+        // ======================================
+        // SAVE MEMBERS
+        // ======================================
+
         setMembers(
-          data.members || []
+          Array.isArray(data.members)
+            ? data.members
+            : []
         );
+
       } catch (error) {
         console.error(
           "DASHBOARD MEMBERS ERROR:",
@@ -103,14 +148,16 @@ function Dashboard() {
           title: "Server Error",
           text:
             "Unable to connect to server.",
+          confirmButtonText: "OK",
         });
+
       } finally {
         setLoading(false);
       }
     };
 
     fetchMembers();
-  }, [navigate]);
+  }, [navigate, API_URL]);
 
   // ==========================================
   // LOGOUT
@@ -139,7 +186,8 @@ function Dashboard() {
     await Swal.fire({
       icon: "success",
       title: "Logged Out",
-      text: "You have been logged out successfully.",
+      text:
+        "You have been logged out successfully.",
       timer: 1200,
       showConfirmButton: false,
     });
@@ -161,9 +209,15 @@ function Dashboard() {
   );
 
   const getDaysRemaining = (date) => {
-    if (!date) return null;
+    if (!date) {
+      return null;
+    }
 
     const endDate = new Date(date);
+
+    if (Number.isNaN(endDate.getTime())) {
+      return null;
+    }
 
     endDate.setHours(
       0,
@@ -274,11 +328,22 @@ function Dashboard() {
   // ==========================================
 
   const formatDate = (date) => {
-    if (!date) return "-";
+    if (!date) {
+      return "-";
+    }
 
-    return new Date(
-      date
-    ).toLocaleDateString(
+    const parsedDate =
+      new Date(date);
+
+    if (
+      Number.isNaN(
+        parsedDate.getTime()
+      )
+    ) {
+      return "-";
+    }
+
+    return parsedDate.toLocaleDateString(
       "en-IN",
       {
         day: "2-digit",
@@ -295,7 +360,9 @@ function Dashboard() {
   return (
     <div className="dashboard-page">
 
-      {/* SIDEBAR */}
+      {/* ======================================
+          SIDEBAR
+      ====================================== */}
 
       <aside className="dashboard-sidebar">
 
@@ -308,13 +375,15 @@ function Dashboard() {
             </div>
 
             <div className="logo-text">
+
               <strong>
-               Jaguar Club
+                Jaguar Club
               </strong>
 
               <span>
                 Mangement
               </span>
+
             </div>
 
           </div>
@@ -350,13 +419,16 @@ function Dashboard() {
               <span>
                 Members
               </span>
+
             </button>
 
           </nav>
 
         </div>
 
-        {/* SIDEBAR BOTTOM */}
+        {/* ====================================
+            SIDEBAR BOTTOM
+        ==================================== */}
 
         <div className="sidebar-bottom">
 
@@ -385,7 +457,10 @@ function Dashboard() {
             className="logout-button"
             onClick={handleLogout}
           >
-            <span>↪</span>
+            <span>
+              ↪
+            </span>
+
             Logout
           </button>
 
@@ -393,11 +468,15 @@ function Dashboard() {
 
       </aside>
 
-      {/* MAIN */}
+      {/* ======================================
+          MAIN
+      ====================================== */}
 
       <main className="dashboard-main">
 
-        {/* HEADER */}
+        {/* ====================================
+            HEADER
+        ==================================== */}
 
         <header className="dashboard-header">
 
@@ -431,7 +510,9 @@ function Dashboard() {
 
         </header>
 
-        {/* STATS */}
+        {/* ====================================
+            STATS
+        ==================================== */}
 
         <section className="dashboard-stats">
 
@@ -568,11 +649,15 @@ function Dashboard() {
 
         </section>
 
-        {/* CONTENT */}
+        {/* ====================================
+            CONTENT
+        ==================================== */}
 
         <section className="dashboard-grid">
 
-          {/* RECENT ENTRIES */}
+          {/* ==================================
+              RECENT ENTRIES
+          ================================== */}
 
           <div className="dashboard-card recent-members-card">
 
@@ -679,12 +764,14 @@ function Dashboard() {
                         <div className="member-name">
 
                           <div className="member-avatar">
+
                             {(
                               member.name ||
                               "M"
                             )
                               .charAt(0)
                               .toUpperCase()}
+
                           </div>
 
                           <div>
@@ -747,7 +834,9 @@ function Dashboard() {
 
           </div>
 
-          {/* QUICK ACTIONS */}
+          {/* ==================================
+              QUICK ACTIONS
+          ================================== */}
 
           <div className="dashboard-card quick-actions-card">
 
@@ -833,7 +922,9 @@ function Dashboard() {
 
             </div>
 
-            {/* CATEGORY SUMMARY */}
+            {/* ==================================
+                CATEGORY SUMMARY
+            ================================== */}
 
             <div className="category-summary">
 
@@ -844,6 +935,7 @@ function Dashboard() {
               <div className="category-summary-list">
 
                 <div>
+
                   <span className="dot normal-dot"></span>
 
                   Normal
@@ -858,9 +950,11 @@ function Dashboard() {
                       ).length
                     }
                   </strong>
+
                 </div>
 
                 <div>
+
                   <span className="dot vip-dot"></span>
 
                   VIP
@@ -874,9 +968,11 @@ function Dashboard() {
                       ).length
                     }
                   </strong>
+
                 </div>
 
                 <div>
+
                   <span className="dot vvip-dot"></span>
 
                   VVIP
@@ -890,6 +986,7 @@ function Dashboard() {
                       ).length
                     }
                   </strong>
+
                 </div>
 
               </div>
@@ -900,7 +997,9 @@ function Dashboard() {
 
         </section>
 
-        {/* FOOTER */}
+        {/* ====================================
+            FOOTER
+        ==================================== */}
 
         <footer className="dashboard-footer">
 

@@ -21,19 +21,21 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Postman / requests without origin
+    origin: function (origin, callback) {
+      // Browser ke bahar requests
       if (!origin) {
         return callback(null, true);
       }
 
+      // Allowed frontend
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
       console.log("CORS BLOCKED:", origin);
 
-      return callback(new Error(`CORS blocked for origin: ${origin}`));
+      // CORS error throw mat karo
+      return callback(null, false);
     },
 
     credentials: true,
@@ -41,6 +43,8 @@ app.use(
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 
     allowedHeaders: ["Content-Type", "Authorization"],
+
+    optionsSuccessStatus: 204,
   }),
 );
 
@@ -50,31 +54,57 @@ app.use(
 
 app.use(express.json());
 
+app.use(express.urlencoded({ extended: true }));
+
 // ==========================================
 // DATABASE
 // ==========================================
 
-connectDB();
+// Database ko request ke time connect karo
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("DATABASE CONNECTION ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Database connection failed",
+    });
+  }
+});
 
 // ==========================================
-// HOME
+// HOME / HEALTH CHECK
 // ==========================================
 
 app.get("/", (req, res) => {
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     message: "Club Management API is running",
   });
 });
 
 // ==========================================
-// AUTH
+// HEALTH CHECK
+// ==========================================
+
+app.get("/health", (req, res) => {
+  return res.status(200).json({
+    success: true,
+    message: "Backend is healthy",
+  });
+});
+
+// ==========================================
+// AUTH ROUTES
 // ==========================================
 
 app.use("/api/auth", authRoutes);
 
 // ==========================================
-// MEMBERS
+// MEMBER ROUTES
 // ==========================================
 
 app.use("/api/members", memberRoutes);
@@ -84,7 +114,7 @@ app.use("/api/members", memberRoutes);
 // ==========================================
 
 app.use((req, res) => {
-  res.status(404).json({
+  return res.status(404).json({
     success: false,
     message: "Route not found",
     path: req.originalUrl,
@@ -98,14 +128,14 @@ app.use((req, res) => {
 app.use((error, req, res, next) => {
   console.error("SERVER ERROR:", error);
 
-  res.status(500).json({
+  return res.status(500).json({
     success: false,
     message: error.message || "Internal server error",
   });
 });
 
 // ==========================================
-// LOCAL DEVELOPMENT
+// LOCAL DEVELOPMENT ONLY
 // ==========================================
 
 if (process.env.NODE_ENV !== "production") {

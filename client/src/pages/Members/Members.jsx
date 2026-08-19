@@ -11,8 +11,16 @@ function Members() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [deleteLoading, setDeleteLoading] =
-    useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(null);
+
+  // ==========================================
+  // API BASE URL
+  // ==========================================
+
+  const API_URL = (
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:5000"
+  ).replace(/\/$/, "");
 
   // ==========================================
   // GET MEMBERS
@@ -23,8 +31,7 @@ function Members() {
       setLoading(true);
       setError("");
 
-      const token =
-        localStorage.getItem("adminToken");
+      const token = localStorage.getItem("adminToken");
 
       if (!token) {
         navigate("/login");
@@ -32,32 +39,33 @@ function Members() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/members",
+        `${API_URL}/api/members`,
         {
           method: "GET",
 
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      const data = await response.json();
+      let data = {};
+
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
 
       // ======================================
       // TOKEN EXPIRED
       // ======================================
 
       if (response.status === 401) {
-        localStorage.removeItem(
-          "adminToken"
-        );
-
+        localStorage.removeItem("adminToken");
         localStorage.removeItem("admin");
 
         navigate("/login");
-
         return;
       }
 
@@ -67,27 +75,19 @@ function Members() {
 
       if (!response.ok) {
         setError(
-          data.message ||
-          "Failed to fetch entries"
+          data.message || "Failed to fetch entries"
         );
 
         return;
       }
 
-      setMembers(
-        data.members || []
-      );
-
+      setMembers(data.members || []);
     } catch (error) {
-      console.error(
-        "GET MEMBERS ERROR:",
-        error
-      );
+      console.error("GET MEMBERS ERROR:", error);
 
       setError(
-        "Unable to connect to server"
+        "Unable to connect to server. Please try again."
       );
-
     } finally {
       setLoading(false);
     }
@@ -120,10 +120,7 @@ function Members() {
       return;
     }
 
-    localStorage.removeItem(
-      "adminToken"
-    );
-
+    localStorage.removeItem("adminToken");
     localStorage.removeItem("admin");
 
     await Swal.fire({
@@ -161,7 +158,8 @@ function Members() {
     const result = await Swal.fire({
       icon: "warning",
       title: "Delete Entry?",
-      text: "Are you sure you want to delete this entry? This action cannot be undone.",
+      text:
+        "Are you sure you want to delete this entry? This action cannot be undone.",
       showCancelButton: true,
       confirmButtonText: "Yes, Delete",
       cancelButtonText: "Cancel",
@@ -176,17 +174,22 @@ function Members() {
 
     try {
       setDeleteLoading(id);
+      setError("");
 
-      const token =
-        localStorage.getItem("adminToken");
+      const token = localStorage.getItem("adminToken");
 
       if (!token) {
         navigate("/login");
         return;
       }
 
+      // ======================================
+      // IMPORTANT:
+      // DO NOT USE localhost HERE
+      // ======================================
+
       const response = await fetch(
-        `http://localhost:5000/api/members/${id}`,
+        `${API_URL}/api/members/${id}`,
         {
           method: "DELETE",
 
@@ -196,22 +199,23 @@ function Members() {
         }
       );
 
-      const data =
-        await response.json();
+      let data = {};
+
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
 
       // ======================================
       // TOKEN EXPIRED
       // ======================================
 
       if (response.status === 401) {
-        localStorage.removeItem(
-          "adminToken"
-        );
-
+        localStorage.removeItem("adminToken");
         localStorage.removeItem("admin");
 
         navigate("/login");
-
         return;
       }
 
@@ -220,17 +224,15 @@ function Members() {
       // ======================================
 
       if (!response.ok) {
-        setError(
-          data.message ||
-          "Failed to delete entry"
-        );
+        const message =
+          data.message || "Failed to delete entry";
 
-        Swal.fire({
+        setError(message);
+
+        await Swal.fire({
           icon: "error",
           title: "Delete Failed",
-          text:
-            data.message ||
-            "Failed to delete entry.",
+          text: message,
           confirmButtonText: "OK",
         });
 
@@ -243,23 +245,21 @@ function Members() {
 
       setMembers((prev) =>
         prev.filter(
-          (member) =>
-            member._id !== id
+          (member) => member._id !== id
         )
       );
 
       // ======================================
-      // SUCCESS ALERT
+      // SUCCESS
       // ======================================
 
-      Swal.fire({
+      await Swal.fire({
         icon: "success",
         title: "Deleted Successfully",
         text: "The entry has been deleted successfully.",
         timer: 1800,
         showConfirmButton: false,
       });
-
     } catch (error) {
       console.error(
         "DELETE MEMBER ERROR:",
@@ -267,16 +267,16 @@ function Members() {
       );
 
       setError(
-        "Unable to delete entry"
+        "Unable to delete entry. Please try again."
       );
 
-      Swal.fire({
+      await Swal.fire({
         icon: "error",
         title: "Delete Failed",
-        text: "Unable to delete entry. Please try again.",
+        text:
+          "Unable to delete entry. Please try again.",
         confirmButtonText: "OK",
       });
-
     } finally {
       setDeleteLoading(null);
     }
@@ -291,9 +291,7 @@ function Members() {
       return "-";
     }
 
-    return new Date(
-      date
-    ).toLocaleDateString(
+    return new Date(date).toLocaleDateString(
       "en-IN",
       {
         day: "2-digit",
@@ -304,7 +302,7 @@ function Members() {
   };
 
   // ==========================================
-  // FORMAT TIME
+  // FORMAT DATE TIME
   // ==========================================
 
   const formatDateTime = (date) => {
@@ -312,9 +310,7 @@ function Members() {
       return "-";
     }
 
-    return new Date(
-      date
-    ).toLocaleString(
+    return new Date(date).toLocaleString(
       "en-IN",
       {
         day: "2-digit",
@@ -330,16 +326,11 @@ function Members() {
   // CATEGORY CLASS
   // ==========================================
 
-  const getCategoryClass = (
-    category
-  ) => {
+  const getCategoryClass = (category) => {
     return (
       category
         ?.toLowerCase()
-        .replace(
-          /\s+/g,
-          "-"
-        ) || "normal"
+        .replace(/\s+/g, "-") || "normal"
     );
   };
 
@@ -363,6 +354,7 @@ function Members() {
         <nav className="members-nav">
 
           <button
+            type="button"
             onClick={() =>
               navigate("/dashboard")
             }
@@ -371,7 +363,10 @@ function Members() {
             <span>Dashboard</span>
           </button>
 
-          <button className="active">
+          <button
+            type="button"
+            className="active"
+          >
             <span>👥</span>
             <span>Members</span>
           </button>
@@ -379,6 +374,7 @@ function Members() {
         </nav>
 
         <button
+          type="button"
           className="members-logout"
           onClick={handleLogout}
         >
@@ -431,6 +427,7 @@ function Members() {
             </span>
 
             <button
+              type="button"
               onClick={() =>
                 setError("")
               }
@@ -518,9 +515,7 @@ function Members() {
                         ) || 0),
                       0
                     )
-                    .toLocaleString(
-                      "en-IN"
-                    )}
+                    .toLocaleString("en-IN")}
                 </strong>
 
               </div>
@@ -601,19 +596,19 @@ function Members() {
               <div className="members-card-actions">
 
                 <button
+                  type="button"
                   onClick={fetchMembers}
                   className="refresh-button"
                   disabled={loading}
                 >
                   ↻
-
                   <span>
                     Refresh
                   </span>
-
                 </button>
 
                 <button
+                  type="button"
                   className="card-add-button"
                   onClick={handleAddMember}
                 >
@@ -646,10 +641,9 @@ function Members() {
                 </p>
 
                 <button
+                  type="button"
                   className="add-member-button"
-                  onClick={
-                    handleAddMember
-                  }
+                  onClick={handleAddMember}
                 >
                   + Create First Entry
                 </button>
@@ -720,9 +714,7 @@ function Members() {
                       (member) => (
 
                         <tr
-                          key={
-                            member._id
-                          }
+                          key={member._id}
                         >
 
                           {/* GUEST */}
@@ -743,18 +735,12 @@ function Members() {
                               <div>
 
                                 <strong>
-                                  {
-                                    member.name
-                                  }{" "}
-                                  {
-                                    member.surname
-                                  }
+                                  {member.name}{" "}
+                                  {member.surname}
                                 </strong>
 
                                 <small>
-                                  {
-                                    member.email
-                                  }
+                                  {member.email}
                                 </small>
 
                               </div>
@@ -766,8 +752,7 @@ function Members() {
                           {/* CONTACT */}
 
                           <td>
-                            {member.contact ||
-                              "-"}
+                            {member.contact || "-"}
                           </td>
 
                           {/* CATEGORY */}
@@ -792,10 +777,7 @@ function Members() {
                           <td>
 
                             <strong>
-                              {
-                                member.paxCount ||
-                                0
-                              }
+                              {member.paxCount || 0}
                             </strong>
 
                             {member.couple && (
@@ -811,8 +793,7 @@ function Members() {
                           <td>
 
                             <span className="table-badge">
-                              {member.tableNo ||
-                                "-"}
+                              {member.tableNo || "-"}
                             </span>
 
                           </td>
@@ -837,14 +818,12 @@ function Members() {
 
                               <span>
                                 W:{" "}
-                                {member.withCover ||
-                                  0}
+                                {member.withCover || 0}
                               </span>
 
                               <span>
                                 WO:{" "}
-                                {member.withoutCover ||
-                                  0}
+                                {member.withoutCover || 0}
                               </span>
 
                             </div>
@@ -897,6 +876,7 @@ function Members() {
                             <div className="member-actions">
 
                               <button
+                                type="button"
                                 className="view-button"
                                 title="View Entry"
                                 onClick={() =>
@@ -909,6 +889,7 @@ function Members() {
                               </button>
 
                               <button
+                                type="button"
                                 className="delete-button"
                                 title="Delete Entry"
                                 disabled={

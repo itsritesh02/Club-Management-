@@ -15,12 +15,21 @@ function MemberDetails() {
   const [downloading, setDownloading] = useState(false);
 
   // ==========================================
+  // API URL
+  // ==========================================
+
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  // ==========================================
   // GET MEMBER
   // ==========================================
 
   useEffect(() => {
     const fetchMember = async () => {
       try {
+        setLoading(true);
+        setError("");
+
         const token = localStorage.getItem("adminToken");
 
         if (!token) {
@@ -28,17 +37,27 @@ function MemberDetails() {
           return;
         }
 
+        if (!API_URL) {
+          setError("API URL is not configured.");
+          return;
+        }
+
         const response = await fetch(
-          `http://localhost:5000/api/members/${id}`,
+          `${API_URL}/api/members/${id}`,
           {
             method: "GET",
             headers: {
               Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
             },
           }
         );
 
         const data = await response.json();
+
+        // ======================================
+        // TOKEN EXPIRED
+        // ======================================
 
         if (response.status === 401) {
           localStorage.removeItem("adminToken");
@@ -48,6 +67,10 @@ function MemberDetails() {
           return;
         }
 
+        // ======================================
+        // ERROR
+        // ======================================
+
         if (!response.ok) {
           setError(
             data.message || "Failed to fetch member"
@@ -56,20 +79,21 @@ function MemberDetails() {
         }
 
         setMember(data.member);
+
       } catch (error) {
-        console.error(
-          "GET MEMBER ERROR:",
-          error
+        console.error("GET MEMBER ERROR:", error);
+
+        setError(
+          "Unable to connect to server. Please try again."
         );
 
-        setError("Unable to connect to server");
       } finally {
         setLoading(false);
       }
     };
 
     fetchMember();
-  }, [id, navigate]);
+  }, [id, navigate, API_URL]);
 
   // ==========================================
   // FORMAT DATE
@@ -112,9 +136,7 @@ function MemberDetails() {
   // ==========================================
 
   const money = (amount) => {
-    return Number(amount || 0).toLocaleString(
-      "en-IN"
-    );
+    return Number(amount || 0).toLocaleString("en-IN");
   };
 
   // ==========================================
@@ -208,7 +230,7 @@ function MemberDetails() {
       y += 14;
 
       // ========================================
-      // GUEST DETAILS TITLE
+      // GUEST DETAILS
       // ========================================
 
       drawSectionTitle(
@@ -301,9 +323,7 @@ function MemberDetails() {
       y = drawRow(
         doc,
         "Couple",
-        member.couple
-          ? "Yes"
-          : "No",
+        member.couple ? "Yes" : "No",
         y
       );
 
@@ -492,7 +512,7 @@ function MemberDetails() {
       );
 
       // ========================================
-      // SUCCESS ALERT
+      // SUCCESS
       // ========================================
 
       Swal.fire({
@@ -508,10 +528,6 @@ function MemberDetails() {
         "PDF DOWNLOAD ERROR:",
         error
       );
-
-      // ========================================
-      // ERROR ALERT
-      // ========================================
 
       Swal.fire({
         icon: "error",
@@ -630,7 +646,6 @@ function MemberDetails() {
   if (loading) {
     return (
       <div className="member-details-loading">
-
         <div className="details-spinner">
           ⟳
         </div>
@@ -638,7 +653,6 @@ function MemberDetails() {
         <p>
           Loading entry details...
         </p>
-
       </div>
     );
   }
@@ -719,8 +733,7 @@ function MemberDetails() {
           </h1>
 
           <p>
-            Complete information about
-            this club entry.
+            Complete information about this club entry.
           </p>
 
         </div>
@@ -883,8 +896,7 @@ function MemberDetails() {
             <Detail
               label="Category"
               value={
-                member.category
-                  ?.toUpperCase()
+                member.category?.toUpperCase()
               }
             />
 
@@ -1018,7 +1030,7 @@ function MemberDetails() {
 
         </section>
 
-        {/* PDF BUTTON */}
+        {/* BOTTOM ACTIONS */}
 
         <div className="bottom-actions">
 
