@@ -18,8 +18,10 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
-    "https://club-management-lilac.vercel.app",
+    origin: [
+      "http://localhost:5173",
+      "https://club-management-ilac.vercel.app",
+    ],
     credentials: true,
   }),
 );
