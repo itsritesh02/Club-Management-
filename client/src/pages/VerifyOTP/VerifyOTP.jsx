@@ -16,8 +16,7 @@ function VerifyOTP() {
   // ==========================================
 
   useEffect(() => {
-    const adminEmail =
-      sessionStorage.getItem("adminEmail");
+    const adminEmail = sessionStorage.getItem("adminEmail");
 
     if (!adminEmail) {
       navigate("/login");
@@ -66,11 +65,11 @@ function VerifyOTP() {
       setLoading(true);
 
       // ==========================================
-      // API REQUEST
+      // API URL FROM VERCEL / .ENV
       // ==========================================
 
       const response = await fetch(
-        "http://localhost:5000/api/auth/verify-otp",
+        `${import.meta.env.VITE_API_URL}/api/auth/verify-otp`,
         {
           method: "POST",
 
@@ -85,6 +84,10 @@ function VerifyOTP() {
         }
       );
 
+      // ==========================================
+      // RESPONSE
+      // ==========================================
+
       const data = await response.json();
 
       // ==========================================
@@ -95,9 +98,7 @@ function VerifyOTP() {
         Swal.fire({
           icon: "error",
           title: "Verification Failed",
-          text:
-            data.message ||
-            "OTP verification failed.",
+          text: data.message || "OTP verification failed.",
           confirmButtonText: "Try Again",
           confirmButtonColor: "#dc2626",
         });
@@ -109,10 +110,7 @@ function VerifyOTP() {
       // SAVE TOKEN
       // ==========================================
 
-      localStorage.setItem(
-        "adminToken",
-        data.token
-      );
+      localStorage.setItem("adminToken", data.token);
 
       localStorage.setItem(
         "admin",
@@ -146,16 +144,12 @@ function VerifyOTP() {
       navigate("/dashboard");
 
     } catch (error) {
-      console.error(
-        "VERIFY OTP ERROR:",
-        error
-      );
+      console.error("VERIFY OTP ERROR:", error);
 
       Swal.fire({
         icon: "error",
         title: "Server Error",
-        text:
-          "Unable to connect to server. Please try again.",
+        text: "Unable to connect to server. Please try again.",
         confirmButtonText: "OK",
         confirmButtonColor: "#dc2626",
       });
@@ -178,7 +172,9 @@ function VerifyOTP() {
   return (
     <div className="otp-page">
 
-      {/* LEFT SIDE */}
+      {/* ==========================================
+          LEFT SIDE
+      ========================================== */}
 
       <div className="otp-left">
 
@@ -207,13 +203,18 @@ function VerifyOTP() {
 
       </div>
 
-      {/* RIGHT SIDE */}
+      {/* ==========================================
+          RIGHT SIDE
+      ========================================== */}
 
       <div className="otp-right">
 
         <div className="otp-card">
 
+          {/* BACK BUTTON */}
+
           <button
+            type="button"
             className="otp-back"
             onClick={handleBack}
             disabled={loading}
@@ -239,34 +240,40 @@ function VerifyOTP() {
 
           <form onSubmit={handleVerifyOTP}>
 
-            {/* OTP */}
+            {/* ==========================================
+                OTP INPUT
+            ========================================== */}
 
             <div className="otp-input-group">
 
-              <label>
+              <label htmlFor="otp">
                 Verification Code
               </label>
 
               <input
+                id="otp"
                 type="text"
                 inputMode="numeric"
                 maxLength="6"
                 placeholder="Enter 6-digit OTP"
                 value={otp}
                 onChange={(e) => {
-                  const value =
-                    e.target.value.replace(
-                      /\D/g,
-                      ""
-                    );
+                  const value = e.target.value.replace(
+                    /\D/g,
+                    ""
+                  );
 
                   setOtp(value);
                 }}
+                disabled={loading}
+                autoComplete="one-time-code"
               />
 
             </div>
 
-            {/* BUTTON */}
+            {/* ==========================================
+                VERIFY BUTTON
+            ========================================== */}
 
             <button
               type="submit"
