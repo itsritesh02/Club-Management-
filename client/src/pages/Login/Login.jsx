@@ -38,8 +38,12 @@ function Login() {
     try {
       setLoading(true);
 
+      // =========================
+      // API URL FROM .ENV
+      // =========================
+
       const response = await fetch(
-        "http://localhost:5000/api/auth/login",
+        `${import.meta.env.VITE_API_URL}/api/auth/login`,
         {
           method: "POST",
 
@@ -53,6 +57,10 @@ function Login() {
           }),
         }
       );
+
+      // =========================
+      // RESPONSE
+      // =========================
 
       const data = await response.json();
 
@@ -76,10 +84,7 @@ function Login() {
       // SAVE EMAIL
       // =========================
 
-      sessionStorage.setItem(
-        "adminEmail",
-        email
-      );
+      sessionStorage.setItem("adminEmail", email);
 
       // =========================
       // SUCCESS
@@ -120,7 +125,9 @@ function Login() {
   return (
     <div className="login-page">
 
-      {/* LEFT SIDE */}
+      {/* ==========================================
+          LEFT SIDE
+      ========================================== */}
 
       <div className="login-left">
 
@@ -149,13 +156,18 @@ function Login() {
 
       </div>
 
-      {/* RIGHT SIDE */}
+      {/* ==========================================
+          RIGHT SIDE
+      ========================================== */}
 
       <div className="login-right">
 
         <div className="login-card">
 
+          {/* BACK BUTTON */}
+
           <button
+            type="button"
             className="back-button"
             onClick={() => navigate("/")}
           >
@@ -170,53 +182,65 @@ function Login() {
 
           <form onSubmit={handleLogin}>
 
-            {/* EMAIL */}
+            {/* ==========================================
+                EMAIL
+            ========================================== */}
 
             <div className="form-group">
 
-              <label>Email</label>
+              <label htmlFor="email">
+                Email
+              </label>
 
               <input
+                id="email"
                 type="email"
                 placeholder="Enter admin email"
                 value={email}
-                onChange={(e) =>
-                  setEmail(e.target.value)
-                }
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                required
               />
 
             </div>
 
-            {/* PASSWORD */}
+            {/* ==========================================
+                PASSWORD
+            ========================================== */}
 
             <div className="form-group">
 
-              <label>Password</label>
+              <label htmlFor="password">
+                Password
+              </label>
 
               <input
+                id="password"
                 type="password"
                 placeholder="Enter password"
                 value={password}
-                onChange={(e) =>
-                  setPassword(e.target.value)
-                }
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
               />
 
             </div>
 
-            {/* BUTTON */}
+            {/* ==========================================
+                LOGIN BUTTON
+            ========================================== */}
 
             <button
               type="submit"
               className="login-submit"
               disabled={loading}
             >
-              {loading
-                ? "Sending OTP..."
-                : "Login"}
+              {loading ? "Sending OTP..." : "Login"}
             </button>
 
           </form>
+
+          {/* OTP INFO */}
 
           <p className="otp-info">
             After login, an OTP will be sent
