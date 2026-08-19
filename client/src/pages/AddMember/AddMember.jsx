@@ -1,68 +1,326 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 import "./AddMember.css";
 
 function AddMember() {
   const navigate = useNavigate();
 
+  // ==========================================
+  // FORM STATE
+  // ==========================================
+
   const [formData, setFormData] = useState({
     name: "",
+    surname: "",
+    contact: "",
     email: "",
-    phone: "",
-    address: "",
-    membershipType: "monthly",
-    membershipStartDate: "",
-    membershipEndDate: "",
+    dob: "",
+    entryTime: "",
+    reffBy: "",
+
+    pax: "",
+    paxCount: 1,
+    couple: false,
+
+    cashAmount: 0,
+    upiAmount: 0,
+    cardAmount: 0,
+    totalAmount: 0,
+
+    withCover: 0,
+    withoutCover: 0,
+
+    category: "normal",
+    tableNo: "",
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   // ==========================================
   // HANDLE INPUT
   // ==========================================
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => {
+      const updatedData = {
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      };
+
+      // ==========================================
+      // AUTOMATIC TOTAL CALCULATION
+      // ==========================================
+
+      if (
+        name === "cashAmount" ||
+        name === "upiAmount" ||
+        name === "cardAmount"
+      ) {
+        const cash =
+          name === "cashAmount"
+            ? Number(value) || 0
+            : Number(prev.cashAmount) || 0;
+
+        const upi =
+          name === "upiAmount"
+            ? Number(value) || 0
+            : Number(prev.upiAmount) || 0;
+
+        const card =
+          name === "cardAmount"
+            ? Number(value) || 0
+            : Number(prev.cardAmount) || 0;
+
+        updatedData.totalAmount = cash + upi + card;
+      }
+
+      return updatedData;
+    });
   };
 
   // ==========================================
-  // ADD MEMBER
+  // RESET FORM
+  // ==========================================
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      surname: "",
+      contact: "",
+      email: "",
+      dob: "",
+      entryTime: "",
+      reffBy: "",
+
+      pax: "",
+      paxCount: 1,
+      couple: false,
+
+      cashAmount: 0,
+      upiAmount: 0,
+      cardAmount: 0,
+      totalAmount: 0,
+
+      withCover: 0,
+      withoutCover: 0,
+
+      category: "normal",
+      tableNo: "",
+    });
+  };
+
+  // ==========================================
+  // SWEET ALERT VALIDATION
+  // ==========================================
+
+  const showValidationAlert = (title, text) => {
+    Swal.fire({
+      icon: "warning",
+      title,
+      text,
+      confirmButtonText: "OK",
+      confirmButtonColor: "#2563eb",
+    });
+  };
+
+  // ==========================================
+  // SUBMIT / CONFIRM ENTRY
   // ==========================================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setError("");
-    setSuccess("");
+    // ==========================================
+    // CHECK LOGIN
+    // ==========================================
 
     const token = localStorage.getItem("adminToken");
 
     if (!token) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Login Required",
+        text: "Your session has expired. Please login again.",
+        confirmButtonText: "Login",
+        confirmButtonColor: "#2563eb",
+      });
+
       navigate("/login");
       return;
     }
 
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.phone ||
-      !formData.membershipStartDate ||
-      !formData.membershipEndDate
-    ) {
-      setError("Please fill all required fields");
+    // ==========================================
+    // REQUIRED VALIDATION
+    // ==========================================
+
+    if (!formData.name.trim()) {
+      showValidationAlert(
+        "Name Required",
+        "Please enter guest name."
+      );
       return;
     }
 
+    if (!formData.surname.trim()) {
+      showValidationAlert(
+        "Surname Required",
+        "Please enter guest surname."
+      );
+      return;
+    }
+
+    if (!formData.contact.trim()) {
+      showValidationAlert(
+        "Contact Required",
+        "Please enter contact number."
+      );
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      showValidationAlert(
+        "Email Required",
+        "Please enter email address."
+      );
+      return;
+    }
+
+    if (!formData.dob) {
+      showValidationAlert(
+        "Date of Birth Required",
+        "Please select date of birth."
+      );
+      return;
+    }
+
+    if (!formData.entryTime) {
+      showValidationAlert(
+        "Entry Time Required",
+        "Please select entry time."
+      );
+      return;
+    }
+
+    if (!formData.category) {
+      showValidationAlert(
+        "Category Required",
+        "Please select category."
+      );
+      return;
+    }
+
+    if (!formData.tableNo.trim()) {
+      showValidationAlert(
+        "Table Number Required",
+        "Please enter table number."
+      );
+      return;
+    }
+
+    // ==========================================
+    // PAYMENT TOTAL
+    // ==========================================
+
+    const cash = Number(formData.cashAmount) || 0;
+    const upi = Number(formData.upiAmount) || 0;
+    const card = Number(formData.cardAmount) || 0;
+
+    const calculatedTotal = cash + upi + card;
+
+    // ==========================================
+    // CONFIRM ENTRY
+    // ==========================================
+
+    const confirmation = await Swal.fire({
+      icon: "question",
+      title: "Confirm Entry?",
+      html: `
+        <div style="text-align: left; font-size: 15px;">
+          <p>
+            <strong>Guest:</strong>
+            ${formData.name} ${formData.surname}
+          </p>
+
+          <p>
+            <strong>Contact:</strong>
+            ${formData.contact}
+          </p>
+
+          <p>
+            <strong>Table:</strong>
+            ${formData.tableNo}
+          </p>
+
+          <p>
+            <strong>Category:</strong>
+            ${formData.category.toUpperCase()}
+          </p>
+
+          <p>
+            <strong>Pax:</strong>
+            ${formData.paxCount}
+          </p>
+
+          <p>
+            <strong>Total Amount:</strong>
+            ₹${calculatedTotal}
+          </p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Confirm Entry",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#2563eb",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!confirmation.isConfirmed) {
+      return;
+    }
+
+    // ==========================================
+    // API REQUEST
+    // ==========================================
+
     try {
       setLoading(true);
+
+      const bookingData = {
+        name: formData.name.trim(),
+        surname: formData.surname.trim(),
+        contact: formData.contact.trim(),
+        email: formData.email.trim(),
+
+        dob: formData.dob,
+        entryTime: formData.entryTime,
+
+        reffBy: formData.reffBy.trim(),
+
+        pax: formData.pax.trim(),
+        paxCount: Number(formData.paxCount) || 1,
+        couple: Boolean(formData.couple),
+
+        cashAmount: cash,
+        upiAmount: upi,
+        cardAmount: card,
+
+        totalAmount: calculatedTotal,
+
+        withCover:
+          Number(formData.withCover) || 0,
+
+        withoutCover:
+          Number(formData.withoutCover) || 0,
+
+        category: formData.category,
+
+        tableNo: formData.tableNo.trim(),
+      };
 
       const response = await fetch(
         "http://localhost:5000/api/members",
@@ -74,266 +332,679 @@ function AddMember() {
             Authorization: `Bearer ${token}`,
           },
 
-          body: JSON.stringify(formData),
+          body: JSON.stringify(bookingData),
         }
       );
 
       const data = await response.json();
 
+      // ==========================================
+      // TOKEN EXPIRED
+      // ==========================================
+
       if (response.status === 401) {
         localStorage.removeItem("adminToken");
         localStorage.removeItem("admin");
+
+        await Swal.fire({
+          icon: "warning",
+          title: "Session Expired",
+          text: "Your session has expired. Please login again.",
+          confirmButtonText: "Login",
+          confirmButtonColor: "#2563eb",
+        });
 
         navigate("/login");
         return;
       }
 
+      // ==========================================
+      // API ERROR
+      // ==========================================
+
       if (!response.ok) {
-        setError(
-          data.message || "Failed to add member"
-        );
+        Swal.fire({
+          icon: "error",
+          title: "Entry Failed",
+          text:
+            data.message ||
+            "Failed to confirm entry.",
+          confirmButtonText: "Try Again",
+          confirmButtonColor: "#dc2626",
+        });
 
         return;
       }
 
-      setSuccess("Member added successfully");
+      // ==========================================
+      // SUCCESS
+      // ==========================================
 
-      // Clear form
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        address: "",
-        membershipType: "monthly",
-        membershipStartDate: "",
-        membershipEndDate: "",
-      });
+      if (data.emailSent === false) {
+        await Swal.fire({
+          icon: "warning",
+          title: "Entry Confirmed",
+          text:
+            "Entry was confirmed successfully, but booking email could not be sent.",
+          confirmButtonText: "Continue",
+          confirmButtonColor: "#2563eb",
+        });
+      } else {
+        await Swal.fire({
+          icon: "success",
+          title: "Entry Confirmed!",
+          text:
+            "Booking details have been sent to the customer's email.",
+          confirmButtonText: "View Members",
+          confirmButtonColor: "#2563eb",
+        });
+      }
 
-      // Go back to members
-      setTimeout(() => {
-        navigate("/members");
-      }, 700);
+      // ==========================================
+      // RESET FORM
+      // ==========================================
+
+      resetForm();
+
+      // ==========================================
+      // REDIRECT
+      // ==========================================
+
+      navigate("/members");
 
     } catch (error) {
       console.error(
-        "ADD MEMBER ERROR:",
+        "CONFIRM ENTRY ERROR:",
         error
       );
 
-      setError(
-        "Unable to connect to server"
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Server Error",
+        text:
+          "Unable to connect to server. Please check your backend.",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#dc2626",
+      });
+
     } finally {
       setLoading(false);
     }
   };
 
+  // ==========================================
+  // JSX
+  // ==========================================
+
   return (
     <div className="add-member-page">
 
-      {/* HEADER */}
+      {/* ========================================
+          HEADER
+      ======================================== */}
 
       <header className="add-member-header">
 
         <div>
-          <h1>Add Member</h1>
+
+          <span className="page-badge">
+            CLUB ENTRY
+          </span>
+
+          <h1>New Entry</h1>
 
           <p>
-            Add a new member to your club
+            Register a guest and confirm their
+            club booking.
           </p>
+
         </div>
 
         <button
+          type="button"
           className="back-button"
           onClick={() => navigate("/members")}
+          disabled={loading}
         >
           ← Back to Members
         </button>
 
       </header>
 
-      {/* FORM CARD */}
+      {/* ========================================
+          FORM CARD
+      ======================================== */}
 
       <div className="add-member-card">
 
-        <div className="form-title">
-          <h2>Member Information</h2>
+        {/* FORM HEADER */}
 
-          <p>
-            Fields marked with * are required.
-          </p>
+        <div className="form-title">
+
+          <div>
+
+            <h2>
+              Guest Information
+            </h2>
+
+            <p>
+              Enter guest and booking details.
+            </p>
+
+          </div>
+
+          <span className="required-info">
+            * Required
+          </span>
+
         </div>
 
         <form onSubmit={handleSubmit}>
 
-          {/* NAME */}
+          {/* ====================================
+              PERSONAL DETAILS
+          ==================================== */}
 
-          <div className="form-group">
+          <div className="form-section">
 
-            <label>
-              Full Name *
-            </label>
+            <div className="section-heading">
 
-            <input
-              type="text"
-              name="name"
-              placeholder="Enter member name"
-              value={formData.name}
-              onChange={handleChange}
-            />
+              <span>01</span>
 
-          </div>
+              <div>
 
-          {/* EMAIL */}
+                <h3>
+                  Personal Details
+                </h3>
 
-          <div className="form-group">
+                <p>
+                  Guest contact information
+                </p>
 
-            <label>
-              Email *
-            </label>
+              </div>
 
-            <input
-              type="email"
-              name="email"
-              placeholder="Enter email address"
-              value={formData.email}
-              onChange={handleChange}
-            />
-
-          </div>
-
-          {/* PHONE */}
-
-          <div className="form-group">
-
-            <label>
-              Phone *
-            </label>
-
-            <input
-              type="tel"
-              name="phone"
-              placeholder="Enter phone number"
-              value={formData.phone}
-              onChange={handleChange}
-            />
-
-          </div>
-
-          {/* ADDRESS */}
-
-          <div className="form-group full-width">
-
-            <label>
-              Address
-            </label>
-
-            <textarea
-              name="address"
-              placeholder="Enter member address"
-              value={formData.address}
-              onChange={handleChange}
-              rows="3"
-            />
-
-          </div>
-
-          {/* MEMBERSHIP TYPE */}
-
-          <div className="form-group">
-
-            <label>
-              Membership Type
-            </label>
-
-            <select
-              name="membershipType"
-              value={formData.membershipType}
-              onChange={handleChange}
-            >
-              <option value="monthly">
-                Monthly
-              </option>
-
-              <option value="quarterly">
-                Quarterly
-              </option>
-
-              <option value="half-yearly">
-                Half Yearly
-              </option>
-
-              <option value="yearly">
-                Yearly
-              </option>
-            </select>
-
-          </div>
-
-          {/* START DATE */}
-
-          <div className="form-group">
-
-            <label>
-              Membership Start Date *
-            </label>
-
-            <input
-              type="date"
-              name="membershipStartDate"
-              value={
-                formData.membershipStartDate
-              }
-              onChange={handleChange}
-            />
-
-          </div>
-
-          {/* END DATE */}
-
-          <div className="form-group">
-
-            <label>
-              Membership End Date *
-            </label>
-
-            <input
-              type="date"
-              name="membershipEndDate"
-              value={
-                formData.membershipEndDate
-              }
-              onChange={handleChange}
-            />
-
-          </div>
-
-          {/* ERROR */}
-
-          {error && (
-            <div className="form-error">
-              {error}
             </div>
-          )}
 
-          {/* SUCCESS */}
+            <div className="form-grid">
 
-          {success && (
-            <div className="form-success">
-              {success}
+              {/* NAME */}
+
+              <div className="form-group">
+
+                <label>
+                  Name <span>*</span>
+                </label>
+
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Enter first name"
+                  value={formData.name}
+                  onChange={handleChange}
+                />
+
+              </div>
+
+              {/* SURNAME */}
+
+              <div className="form-group">
+
+                <label>
+                  Surname <span>*</span>
+                </label>
+
+                <input
+                  type="text"
+                  name="surname"
+                  placeholder="Enter surname"
+                  value={formData.surname}
+                  onChange={handleChange}
+                />
+
+              </div>
+
+              {/* CONTACT */}
+
+              <div className="form-group">
+
+                <label>
+                  Contact <span>*</span>
+                </label>
+
+                <input
+                  type="tel"
+                  name="contact"
+                  placeholder="Enter contact number"
+                  value={formData.contact}
+                  onChange={handleChange}
+                />
+
+              </div>
+
+              {/* EMAIL */}
+
+              <div className="form-group">
+
+                <label>
+                  Email <span>*</span>
+                </label>
+
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="guest@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+
+              </div>
+
+              {/* DOB */}
+
+              <div className="form-group">
+
+                <label>
+                  Date of Birth <span>*</span>
+                </label>
+
+                <input
+                  type="date"
+                  name="dob"
+                  value={formData.dob}
+                  onChange={handleChange}
+                />
+
+              </div>
+
+              {/* REFF BY */}
+
+              <div className="form-group">
+
+                <label>
+                  Reff By
+                </label>
+
+                <input
+                  type="text"
+                  name="reffBy"
+                  placeholder="Referred by"
+                  value={formData.reffBy}
+                  onChange={handleChange}
+                />
+
+              </div>
+
             </div>
-          )}
 
-          {/* BUTTONS */}
+          </div>
+
+          {/* ====================================
+              ENTRY DETAILS
+          ==================================== */}
+
+          <div className="form-section">
+
+            <div className="section-heading">
+
+              <span>02</span>
+
+              <div>
+
+                <h3>
+                  Entry Details
+                </h3>
+
+                <p>
+                  Entry, guest and table details
+                </p>
+
+              </div>
+
+            </div>
+
+            <div className="form-grid">
+
+              {/* ENTRY TIME */}
+
+              <div className="form-group">
+
+                <label>
+                  Entry Time <span>*</span>
+                </label>
+
+                <input
+                  type="datetime-local"
+                  name="entryTime"
+                  value={formData.entryTime}
+                  onChange={handleChange}
+                />
+
+              </div>
+
+              {/* CATEGORY */}
+
+              <div className="form-group">
+
+                <label>
+                  Category <span>*</span>
+                </label>
+
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                >
+
+                  <option value="normal">
+                    Normal
+                  </option>
+
+                  <option value="vip">
+                    VIP
+                  </option>
+
+                  <option value="vvip">
+                    VVIP
+                  </option>
+
+                </select>
+
+              </div>
+
+              {/* TABLE */}
+
+              <div className="form-group">
+
+                <label>
+                  Table No <span>*</span>
+                </label>
+
+                <input
+                  type="text"
+                  name="tableNo"
+                  placeholder="e.g. T-12"
+                  value={formData.tableNo}
+                  onChange={handleChange}
+                />
+
+              </div>
+
+              {/* PAX */}
+
+              <div className="form-group">
+
+                <label>
+                  Pax
+                </label>
+
+                <input
+                  type="text"
+                  name="pax"
+                  placeholder="e.g. Adult / Guest"
+                  value={formData.pax}
+                  onChange={handleChange}
+                />
+
+              </div>
+
+              {/* PAX COUNT */}
+
+              <div className="form-group">
+
+                <label>
+                  Pax Count
+                </label>
+
+                <input
+                  type="number"
+                  name="paxCount"
+                  min="1"
+                  value={formData.paxCount}
+                  onChange={handleChange}
+                />
+
+              </div>
+
+              {/* COUPLE */}
+
+              <div className="form-group">
+
+                <label>
+                  Couple
+                </label>
+
+                <label className="checkbox-label">
+
+                  <input
+                    type="checkbox"
+                    name="couple"
+                    checked={formData.couple}
+                    onChange={handleChange}
+                  />
+
+                  <span>
+                    Couple Entry
+                  </span>
+
+                </label>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* ====================================
+              COVER DETAILS
+          ==================================== */}
+
+          <div className="form-section">
+
+            <div className="section-heading">
+
+              <span>03</span>
+
+              <div>
+
+                <h3>
+                  Cover Details
+                </h3>
+
+                <p>
+                  Guest cover information
+                </p>
+
+              </div>
+
+            </div>
+
+            <div className="form-grid">
+
+              {/* WITH COVER */}
+
+              <div className="form-group">
+
+                <label>
+                  With Cover
+                </label>
+
+                <input
+                  type="number"
+                  name="withCover"
+                  min="0"
+                  placeholder="0"
+                  value={formData.withCover}
+                  onChange={handleChange}
+                />
+
+              </div>
+
+              {/* WITHOUT COVER */}
+
+              <div className="form-group">
+
+                <label>
+                  Without Cover
+                </label>
+
+                <input
+                  type="number"
+                  name="withoutCover"
+                  min="0"
+                  placeholder="0"
+                  value={formData.withoutCover}
+                  onChange={handleChange}
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* ====================================
+              PAYMENT DETAILS
+          ==================================== */}
+
+          <div className="form-section">
+
+            <div className="section-heading">
+
+              <span>04</span>
+
+              <div>
+
+                <h3>
+                  Payment Details
+                </h3>
+
+                <p>
+                  Enter payment breakdown
+                </p>
+
+              </div>
+
+            </div>
+
+            <div className="form-grid">
+
+              {/* CASH */}
+
+              <div className="form-group">
+
+                <label>
+                  Cash Amount
+                </label>
+
+                <div className="amount-input">
+
+                  <span>₹</span>
+
+                  <input
+                    type="number"
+                    name="cashAmount"
+                    min="0"
+                    placeholder="0"
+                    value={formData.cashAmount}
+                    onChange={handleChange}
+                  />
+
+                </div>
+
+              </div>
+
+              {/* UPI */}
+
+              <div className="form-group">
+
+                <label>
+                  UPI Amount
+                </label>
+
+                <div className="amount-input">
+
+                  <span>₹</span>
+
+                  <input
+                    type="number"
+                    name="upiAmount"
+                    min="0"
+                    placeholder="0"
+                    value={formData.upiAmount}
+                    onChange={handleChange}
+                  />
+
+                </div>
+
+              </div>
+
+              {/* CARD */}
+
+              <div className="form-group">
+
+                <label>
+                  Card Amount
+                </label>
+
+                <div className="amount-input">
+
+                  <span>₹</span>
+
+                  <input
+                    type="number"
+                    name="cardAmount"
+                    min="0"
+                    placeholder="0"
+                    value={formData.cardAmount}
+                    onChange={handleChange}
+                  />
+
+                </div>
+
+              </div>
+
+              {/* TOTAL */}
+
+              <div className="form-group total-field">
+
+                <label>
+                  Total Amount
+                </label>
+
+                <div className="amount-input total-input">
+
+                  <span>₹</span>
+
+                  <input
+                    type="number"
+                    name="totalAmount"
+                    value={formData.totalAmount}
+                    readOnly
+                  />
+
+                </div>
+
+                <small className="total-help">
+                  Cash + UPI + Card
+                </small>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* ====================================
+              BUTTONS
+          ==================================== */}
 
           <div className="form-buttons">
 
             <button
               type="button"
               className="cancel-button"
-              onClick={() =>
-                navigate("/members")
-              }
+              onClick={() => navigate("/members")}
+              disabled={loading}
             >
               Cancel
             </button>
@@ -343,9 +1014,18 @@ function AddMember() {
               className="submit-button"
               disabled={loading}
             >
-              {loading
-                ? "Adding..."
-                : "Add Member"}
+
+              {loading ? (
+                <>
+                  <span className="button-spinner"></span>
+                  Confirming Entry...
+                </>
+              ) : (
+                <>
+                  ✓ Confirm Entry
+                </>
+              )}
+
             </button>
 
           </div>
