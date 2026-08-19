@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 import "./VerifyOTP.css";
 
@@ -7,14 +8,8 @@ function VerifyOTP() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
-
   const [otp, setOtp] = useState("");
-
   const [loading, setLoading] = useState(false);
-
-  const [error, setError] = useState("");
-
-  const [success, setSuccess] = useState("");
 
   // ==========================================
   // GET ADMIN EMAIL
@@ -39,21 +34,40 @@ function VerifyOTP() {
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
 
-    setError("");
-    setSuccess("");
+    // ==========================================
+    // VALIDATION
+    // ==========================================
 
     if (!otp) {
-      setError("Please enter OTP");
+      Swal.fire({
+        icon: "warning",
+        title: "OTP Required",
+        text: "Please enter the OTP.",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#2563eb",
+      });
+
       return;
     }
 
     if (otp.length !== 6) {
-      setError("OTP must be 6 digits");
+      Swal.fire({
+        icon: "warning",
+        title: "Invalid OTP",
+        text: "OTP must be 6 digits.",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#2563eb",
+      });
+
       return;
     }
 
     try {
       setLoading(true);
+
+      // ==========================================
+      // API REQUEST
+      // ==========================================
 
       const response = await fetch(
         "http://localhost:5000/api/auth/verify-otp",
@@ -73,10 +87,20 @@ function VerifyOTP() {
 
       const data = await response.json();
 
+      // ==========================================
+      // API ERROR
+      // ==========================================
+
       if (!response.ok) {
-        setError(
-          data.message || "OTP verification failed"
-        );
+        Swal.fire({
+          icon: "error",
+          title: "Verification Failed",
+          text:
+            data.message ||
+            "OTP verification failed.",
+          confirmButtonText: "Try Again",
+          confirmButtonColor: "#dc2626",
+        });
 
         return;
       }
@@ -95,17 +119,31 @@ function VerifyOTP() {
         JSON.stringify(data.admin)
       );
 
-      // Remove temporary email
+      // ==========================================
+      // REMOVE TEMP EMAIL
+      // ==========================================
+
       sessionStorage.removeItem("adminEmail");
 
-      setSuccess(
-        "OTP verified successfully"
-      );
+      // ==========================================
+      // SUCCESS
+      // ==========================================
 
-      // Go to Dashboard
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 500);
+      await Swal.fire({
+        icon: "success",
+        title: "Verification Successful!",
+        text: "You have been successfully logged in.",
+        confirmButtonText: "Go to Dashboard",
+        confirmButtonColor: "#2563eb",
+        timer: 1800,
+        timerProgressBar: true,
+      });
+
+      // ==========================================
+      // GO TO DASHBOARD
+      // ==========================================
+
+      navigate("/dashboard");
 
     } catch (error) {
       console.error(
@@ -113,9 +151,14 @@ function VerifyOTP() {
         error
       );
 
-      setError(
-        "Unable to connect to server"
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Server Error",
+        text:
+          "Unable to connect to server. Please try again.",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#dc2626",
+      });
 
     } finally {
       setLoading(false);
@@ -127,9 +170,7 @@ function VerifyOTP() {
   // ==========================================
 
   const handleBack = () => {
-    sessionStorage.removeItem(
-      "adminEmail"
-    );
+    sessionStorage.removeItem("adminEmail");
 
     navigate("/login");
   };
@@ -175,6 +216,7 @@ function VerifyOTP() {
           <button
             className="otp-back"
             onClick={handleBack}
+            disabled={loading}
           >
             ← Back to Login
           </button>
@@ -195,9 +237,7 @@ function VerifyOTP() {
             {email}
           </p>
 
-          <form
-            onSubmit={handleVerifyOTP}
-          >
+          <form onSubmit={handleVerifyOTP}>
 
             {/* OTP */}
 
@@ -225,22 +265,6 @@ function VerifyOTP() {
               />
 
             </div>
-
-            {/* ERROR */}
-
-            {error && (
-              <div className="otp-error">
-                {error}
-              </div>
-            )}
-
-            {/* SUCCESS */}
-
-            {success && (
-              <div className="otp-success">
-                {success}
-              </div>
-            )}
 
             {/* BUTTON */}
 
