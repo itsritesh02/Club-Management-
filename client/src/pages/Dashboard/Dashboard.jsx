@@ -1,32 +1,295 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 import "./Dashboard.css";
 
 function Dashboard() {
   const navigate = useNavigate();
 
-  const [admin] = useState(() => {
+  const [admin, setAdmin] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // ==========================================
+  // LOAD ADMIN
+  // ==========================================
+
+  useEffect(() => {
     const savedAdmin = localStorage.getItem("admin");
 
-    return savedAdmin
-      ? JSON.parse(savedAdmin)
-      : null;
-  });
+    try {
+      setAdmin(
+        savedAdmin
+          ? JSON.parse(savedAdmin)
+          : null
+      );
+    } catch {
+      setAdmin(null);
+    }
+  }, []);
+
+  // ==========================================
+  // FETCH MEMBERS
+  // ==========================================
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const token =
+          localStorage.getItem("adminToken");
+
+        if (!token) {
+          navigate("/login");
+          return;
+        }
+
+        setLoading(true);
+
+        const response = await fetch(
+          "http://localhost:5000/api/members",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.status === 401) {
+          localStorage.removeItem(
+            "adminToken"
+          );
+
+          localStorage.removeItem("admin");
+
+          await Swal.fire({
+            icon: "warning",
+            title: "Session Expired",
+            text: "Please login again.",
+            confirmButtonText: "Go to Login",
+          });
+
+          navigate("/login");
+          return;
+        }
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          Swal.fire({
+            icon: "error",
+            title: "Unable to Load Data",
+            text:
+              data.message ||
+              "Failed to fetch members.",
+          });
+
+          return;
+        }
+
+        setMembers(
+          data.members || []
+        );
+      } catch (error) {
+        console.error(
+          "DASHBOARD MEMBERS ERROR:",
+          error
+        );
+
+        Swal.fire({
+          icon: "error",
+          title: "Server Error",
+          text:
+            "Unable to connect to server.",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMembers();
+  }, [navigate]);
 
   // ==========================================
   // LOGOUT
   // ==========================================
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      icon: "question",
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Logout",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+      confirmButtonColor: "#7c3aed",
+      cancelButtonColor: "#374151",
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
     localStorage.removeItem("adminToken");
     localStorage.removeItem("admin");
+
+    await Swal.fire({
+      icon: "success",
+      title: "Logged Out",
+      text: "You have been logged out successfully.",
+      timer: 1200,
+      showConfirmButton: false,
+    });
 
     navigate("/");
   };
 
   // ==========================================
-  // DASHBOARD
+  // DATE HELPERS
+  // ==========================================
+
+  const today = new Date();
+
+  today.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+  const getDaysRemaining = (date) => {
+    if (!date) return null;
+
+    const endDate = new Date(date);
+
+    endDate.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+    return Math.ceil(
+      (endDate - today) /
+      (1000 * 60 * 60 * 24)
+    );
+  };
+
+  // ==========================================
+  // DASHBOARD STATS
+  // ==========================================
+
+  const totalEntries =
+    members.length;
+
+  const activeEntries =
+    members.filter((member) => {
+      const days =
+        getDaysRemaining(
+          member.membershipEndDate
+        );
+
+      return (
+        days !== null &&
+        days >= 0
+      );
+    }).length;
+
+  const expiringSoon =
+    members.filter((member) => {
+      const days =
+        getDaysRemaining(
+          member.membershipEndDate
+        );
+
+      return (
+        days !== null &&
+        days >= 0 &&
+        days <= 30
+      );
+    }).length;
+
+  const totalRevenue =
+    members.reduce(
+      (total, member) => {
+        return (
+          total +
+          Number(
+            member.totalAmount || 0
+          )
+        );
+      },
+      0
+    );
+
+  // ==========================================
+  // RECENT ENTRIES
+  // ==========================================
+
+  const recentMembers =
+    [...members]
+      .sort((a, b) => {
+        const dateA = new Date(
+          a.createdAt ||
+          a.entryTime ||
+          0
+        );
+
+        const dateB = new Date(
+          b.createdAt ||
+          b.entryTime ||
+          0
+        );
+
+        return dateB - dateA;
+      })
+      .slice(0, 5);
+
+  // ==========================================
+  // CATEGORY
+  // ==========================================
+
+  const getCategoryClass = (
+    category
+  ) => {
+    const value =
+      category?.toLowerCase();
+
+    if (value === "vip") {
+      return "category-vip";
+    }
+
+    if (value === "vvip") {
+      return "category-vvip";
+    }
+
+    return "category-normal";
+  };
+
+  // ==========================================
+  // FORMAT DATE
+  // ==========================================
+
+  const formatDate = (date) => {
+    if (!date) return "-";
+
+    return new Date(
+      date
+    ).toLocaleDateString(
+      "en-IN",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }
+    );
+  };
+
+  // ==========================================
+  // UI
   // ==========================================
 
   return (
@@ -36,48 +299,97 @@ function Dashboard() {
 
       <aside className="dashboard-sidebar">
 
-        <div className="dashboard-logo">
-          Club<span>Manager</span>
+        <div className="sidebar-top">
+
+          <div className="dashboard-logo">
+
+            <div className="logo-icon">
+              JC
+            </div>
+
+            <div className="logo-text">
+              <strong>
+               Jaguar Club
+              </strong>
+
+              <span>
+                Mangement
+              </span>
+            </div>
+
+          </div>
+
+          <div className="sidebar-section-title">
+            MENU
+          </div>
+
+          <nav className="dashboard-nav">
+
+            <button
+              className="nav-item active"
+            >
+              <span className="nav-icon">
+                ⌂
+              </span>
+
+              <span>
+                Dashboard
+              </span>
+            </button>
+
+            <button
+              className="nav-item"
+              onClick={() =>
+                navigate("/members")
+              }
+            >
+              <span className="nav-icon">
+                ♙
+              </span>
+
+              <span>
+                Members
+              </span>
+            </button>
+
+          </nav>
+
         </div>
 
-        <nav className="dashboard-nav">
+        {/* SIDEBAR BOTTOM */}
 
-          <button className="nav-item active">
-            <span>📊</span>
-            Dashboard
-          </button>
+        <div className="sidebar-bottom">
+
+          <div className="sidebar-admin">
+
+            <div className="sidebar-avatar">
+              A
+            </div>
+
+            <div className="sidebar-admin-info">
+
+              <strong>
+                Admin
+              </strong>
+
+              <span>
+                {admin?.email ||
+                  "Admin"}
+              </span>
+
+            </div>
+
+          </div>
 
           <button
-            className="nav-item"
-            onClick={() => navigate("/members")}
+            className="logout-button"
+            onClick={handleLogout}
           >
-            <span>👥</span>
-            Members
+            <span>↪</span>
+            Logout
           </button>
 
-          <button className="nav-item">
-            <span>💳</span>
-            Payments
-          </button>
-
-          <button className="nav-item">
-            <span>📋</span>
-            Memberships
-          </button>
-
-          <button className="nav-item">
-            <span>📈</span>
-            Reports
-          </button>
-
-        </nav>
-
-        <button
-          className="logout-button"
-          onClick={handleLogout}
-        >
-          🚪 Logout
-        </button>
+        </div>
 
       </aside>
 
@@ -90,28 +402,32 @@ function Dashboard() {
         <header className="dashboard-header">
 
           <div>
-            <h1>Dashboard</h1>
+
+            <div className="breadcrumb">
+              Admin / Dashboard
+            </div>
+
+            <h1>
+              Dashboard
+            </h1>
 
             <p>
-              Welcome back, Admin
+              Overview of your club
+              entries and revenue.
             </p>
-          </div>
-
-          <div className="admin-info">
-
-            <div className="admin-avatar">
-              A
-            </div>
-
-            <div>
-              <strong>Admin</strong>
-
-              <span>
-                {admin?.email || "Admin"}
-              </span>
-            </div>
 
           </div>
+
+          <button
+            className="header-entry-button"
+            onClick={() =>
+              navigate(
+                "/members/add"
+              )
+            }
+          >
+            + New Entry
+          </button>
 
         </header>
 
@@ -121,52 +437,131 @@ function Dashboard() {
 
           <div className="dashboard-stat-card">
 
-            <div className="stat-icon">
-              👥
+            <div className="stat-card-top">
+
+              <div className="stat-icon members-icon">
+                ♙
+              </div>
+
+              <span className="stat-label">
+                TOTAL
+              </span>
+
             </div>
 
-            <div>
-              <p>Total Members</p>
-              <h2>0</h2>
-            </div>
+            <div className="stat-content">
 
-          </div>
+              <span>
+                Total Entries
+              </span>
 
-          <div className="dashboard-stat-card">
+              <h2>
+                {totalEntries}
+              </h2>
 
-            <div className="stat-icon">
-              ✅
-            </div>
+              <p>
+                All club entries
+              </p>
 
-            <div>
-              <p>Active Members</p>
-              <h2>0</h2>
-            </div>
-
-          </div>
-
-          <div className="dashboard-stat-card">
-
-            <div className="stat-icon">
-              ⏳
-            </div>
-
-            <div>
-              <p>Expiring Soon</p>
-              <h2>0</h2>
             </div>
 
           </div>
 
           <div className="dashboard-stat-card">
 
-            <div className="stat-icon">
-              💰
+            <div className="stat-card-top">
+
+              <div className="stat-icon active-icon">
+                ✓
+              </div>
+
+              <span className="stat-label">
+                ACTIVE
+              </span>
+
             </div>
 
-            <div>
-              <p>Total Revenue</p>
-              <h2>₹0</h2>
+            <div className="stat-content">
+
+              <span>
+                Active Entries
+              </span>
+
+              <h2>
+                {activeEntries}
+              </h2>
+
+              <p>
+                Currently active
+              </p>
+
+            </div>
+
+          </div>
+
+          <div className="dashboard-stat-card">
+
+            <div className="stat-card-top">
+
+              <div className="stat-icon expiring-icon">
+                ◷
+              </div>
+
+              <span className="stat-label warning-label">
+                ATTENTION
+              </span>
+
+            </div>
+
+            <div className="stat-content">
+
+              <span>
+                Expiring Soon
+              </span>
+
+              <h2>
+                {expiringSoon}
+              </h2>
+
+              <p>
+                Within 30 days
+              </p>
+
+            </div>
+
+          </div>
+
+          <div className="dashboard-stat-card">
+
+            <div className="stat-card-top">
+
+              <div className="stat-icon revenue-icon">
+                ₹
+              </div>
+
+              <span className="stat-label">
+                REVENUE
+              </span>
+
+            </div>
+
+            <div className="stat-content">
+
+              <span>
+                Total Revenue
+              </span>
+
+              <h2>
+                ₹
+                {totalRevenue.toLocaleString(
+                  "en-IN"
+                )}
+              </h2>
+
+              <p>
+                Total amount collected
+              </p>
+
             </div>
 
           </div>
@@ -175,61 +570,199 @@ function Dashboard() {
 
         {/* CONTENT */}
 
-        <section className="dashboard-content">
+        <section className="dashboard-grid">
 
-          <div className="dashboard-card">
+          {/* RECENT ENTRIES */}
 
-            <div className="card-heading">
+          <div className="dashboard-card recent-members-card">
+
+            <div className="card-header">
 
               <div>
-                <h2>Recent Members</h2>
+
+                <h2>
+                  Recent Entries
+                </h2>
 
                 <p>
-                  Latest members added to the club
+                  Latest club entries
                 </p>
+
               </div>
 
               <button
-                onClick={() => navigate("/members")}
+                className="outline-button"
+                onClick={() =>
+                  navigate(
+                    "/members"
+                  )
+                }
               >
-                View All
+                View All →
               </button>
 
             </div>
 
-            <div className="empty-state">
+            {loading ? (
 
-              <div className="empty-icon">
-                👥
+              <div className="dashboard-loading">
+                Loading entries...
               </div>
 
-              <h3>No Members Yet</h3>
+            ) : recentMembers.length ===
+              0 ? (
 
-              <p>
-                Add your first club member
-                to see them here.
-              </p>
+              <div className="empty-members">
 
-              <button
-                onClick={() => navigate("/members")}
-              >
-                Add Member
-              </button>
+                <div className="empty-members-icon">
+                  ♙
+                </div>
 
-            </div>
+                <h3>
+                  No Entries Yet
+                </h3>
+
+                <p>
+                  Add your first club
+                  entry to get started.
+                </p>
+
+                <button
+                  className="primary-button"
+                  onClick={() =>
+                    navigate(
+                      "/members/add"
+                    )
+                  }
+                >
+                  + New Entry
+                </button>
+
+              </div>
+
+            ) : (
+
+              <div className="members-table-wrapper">
+
+                <div className="members-table">
+
+                  <div className="table-header">
+
+                    <span>
+                      MEMBER
+                    </span>
+
+                    <span>
+                      CONTACT
+                    </span>
+
+                    <span>
+                      CATEGORY
+                    </span>
+
+                    <span>
+                      TABLE
+                    </span>
+
+                  </div>
+
+                  {recentMembers.map(
+                    (member) => (
+
+                      <div
+                        className="table-row"
+                        key={
+                          member._id
+                        }
+                      >
+
+                        <div className="member-name">
+
+                          <div className="member-avatar">
+                            {(
+                              member.name ||
+                              "M"
+                            )
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
+
+                          <div>
+
+                            <strong>
+                              {
+                                member.name
+                              }{" "}
+                              {
+                                member.surname ||
+                                ""
+                              }
+                            </strong>
+
+                            <small>
+                              {formatDate(
+                                member.entryTime ||
+                                member.createdAt
+                              )}
+                            </small>
+
+                          </div>
+
+                        </div>
+
+                        <span className="member-contact">
+                          {member.contact ||
+                            member.phone ||
+                            "-"}
+                        </span>
+
+                        <span>
+
+                          <span
+                            className={`category-badge ${getCategoryClass(
+                              member.category
+                            )}`}
+                          >
+                            {member.category ||
+                              "Normal"}
+                          </span>
+
+                        </span>
+
+                        <span className="table-number">
+                          {member.tableNo ||
+                            "-"}
+                        </span>
+
+                      </div>
+
+                    )
+                  )}
+
+                </div>
+
+              </div>
+
+            )}
 
           </div>
 
-          <div className="dashboard-card">
+          {/* QUICK ACTIONS */}
 
-            <div className="card-heading">
+          <div className="dashboard-card quick-actions-card">
+
+            <div className="card-header">
 
               <div>
-                <h2>Quick Actions</h2>
+
+                <h2>
+                  Quick Actions
+                </h2>
 
                 <p>
-                  Manage your club quickly
+                  Manage your club
                 </p>
+
               </div>
 
             </div>
@@ -237,42 +770,149 @@ function Dashboard() {
             <div className="quick-actions">
 
               <button
-                onClick={() => navigate("/members")}
+                className="quick-action"
+                onClick={() =>
+                  navigate(
+                    "/members/add"
+                  )
+                }
               >
-                <span>➕</span>
-                <div>
-                  <strong>Add Member</strong>
-                  <small>
-                    Add a new club member
-                  </small>
+
+                <div className="quick-action-icon add-icon">
+                  +
                 </div>
+
+                <div>
+
+                  <strong>
+                    New Entry
+                  </strong>
+
+                  <small>
+                    Add a new club entry
+                  </small>
+
+                </div>
+
+                <span className="action-arrow">
+                  →
+                </span>
+
               </button>
 
-              <button>
-                <span>💳</span>
-                <div>
-                  <strong>Record Payment</strong>
-                  <small>
-                    Add a member payment
-                  </small>
+              <button
+                className="quick-action"
+                onClick={() =>
+                  navigate(
+                    "/members"
+                  )
+                }
+              >
+
+                <div className="quick-action-icon members-action-icon">
+                  ♙
                 </div>
+
+                <div>
+
+                  <strong>
+                    Members
+                  </strong>
+
+                  <small>
+                    View all club entries
+                  </small>
+
+                </div>
+
+                <span className="action-arrow">
+                  →
+                </span>
+
               </button>
 
-              <button>
-                <span>📊</span>
+            </div>
+
+            {/* CATEGORY SUMMARY */}
+
+            <div className="category-summary">
+
+              <h3>
+                Entry Categories
+              </h3>
+
+              <div className="category-summary-list">
+
                 <div>
-                  <strong>View Reports</strong>
-                  <small>
-                    Check club reports
-                  </small>
+                  <span className="dot normal-dot"></span>
+
+                  Normal
+
+                  <strong>
+                    {
+                      members.filter(
+                        (m) =>
+                          !m.category ||
+                          m.category.toLowerCase() ===
+                          "normal"
+                      ).length
+                    }
+                  </strong>
                 </div>
-              </button>
+
+                <div>
+                  <span className="dot vip-dot"></span>
+
+                  VIP
+
+                  <strong>
+                    {
+                      members.filter(
+                        (m) =>
+                          m.category?.toLowerCase() ===
+                          "vip"
+                      ).length
+                    }
+                  </strong>
+                </div>
+
+                <div>
+                  <span className="dot vvip-dot"></span>
+
+                  VVIP
+
+                  <strong>
+                    {
+                      members.filter(
+                        (m) =>
+                          m.category?.toLowerCase() ===
+                          "vvip"
+                      ).length
+                    }
+                  </strong>
+                </div>
+
+              </div>
 
             </div>
 
           </div>
 
         </section>
+
+        {/* FOOTER */}
+
+        <footer className="dashboard-footer">
+
+          <span>
+            ClubManager Admin Panel
+          </span>
+
+          <span>
+            © 2026
+          </span>
+
+        </footer>
 
       </main>
 
