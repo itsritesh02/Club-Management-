@@ -1,13 +1,16 @@
+
 /* ==========================================
-   ADD MEMBER - CLUB DARK THEME
+   ADD MEMBER PAGE
 ========================================== */
 
 .add-member-page {
   min-height: 100vh;
-  background: #0b0f1c;
-  color: #f8fafc;
+  width: 100%;
 
-  padding: 32px 40px 50px;
+  padding: 26px;
+
+  background: #080b16;
+  color: #f8fafc;
 
   font-family:
     Inter,
@@ -15,78 +18,86 @@
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+
+  box-sizing: border-box;
 }
+
 
 /* ==========================================
    HEADER
 ========================================== */
 
 .add-member-header {
-  max-width: 1100px;
-  margin: 0 auto 25px;
+  max-width: 1050px;
+
+  margin: 0 auto 18px;
 
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
 
-  gap: 20px;
+  gap: 15px;
 }
 
 .page-badge {
   display: inline-flex;
 
-  padding: 6px 10px;
+  padding: 5px 9px;
+
+  margin-bottom: 7px;
 
   border-radius: 6px;
 
   background: rgba(124, 58, 237, 0.12);
+
   border: 1px solid rgba(124, 58, 237, 0.25);
 
   color: #a78bfa;
 
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 800;
 
-  letter-spacing: 1px;
-
-  margin-bottom: 10px;
+  letter-spacing: 0.9px;
 }
 
 .add-member-header h1 {
   margin: 0;
 
-  font-size: 28px;
-  font-weight: 750;
-
   color: #f8fafc;
+
+  font-size: 25px;
+  font-weight: 750;
 
   letter-spacing: -0.5px;
 }
 
 .add-member-header p {
-  margin: 7px 0 0;
+  margin: 5px 0 0;
 
-  color: #8b93a7;
+  color: #737d94;
 
-  font-size: 13px;
+  font-size: 11px;
 }
+
 
 /* ==========================================
    BACK BUTTON
 ========================================== */
 
 .back-button {
+  flex-shrink: 0;
+
+  padding: 8px 12px;
+
   border: 1px solid #252b3d;
+
+  border-radius: 7px;
 
   background: #111625;
 
   color: #aeb6c8;
 
-  border-radius: 8px;
-
-  padding: 10px 15px;
-
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
 
   cursor: pointer;
@@ -102,96 +113,108 @@
   background: #151127;
 }
 
+
 /* ==========================================
    MAIN CARD
 ========================================== */
 
 .add-member-card {
-  max-width: 1100px;
+  max-width: 1050px;
 
   margin: 0 auto;
 
-  background: #0f1423;
-
-  border: 1px solid #252b3d;
-
-  border-radius: 14px;
-
   overflow: hidden;
 
+  background: #0d1120;
+
+  border: 1px solid #252b42;
+
+  border-radius: 12px;
+
   box-shadow:
-    0 20px 50px rgba(0, 0, 0, 0.25);
+    0 15px 40px rgba(0, 0, 0, 0.18);
 }
+
 
 /* ==========================================
    FORM TITLE
 ========================================== */
 
 .form-title {
-  min-height: 76px;
+  min-height: 62px;
 
-  padding: 18px 25px;
-
-  border-bottom: 1px solid #252b3d;
+  padding: 14px 20px;
 
   display: flex;
-
   align-items: center;
   justify-content: space-between;
+
+  gap: 15px;
+
+  border-bottom: 1px solid #242a3e;
+
+  box-sizing: border-box;
 }
 
 .form-title h2 {
-  margin: 0 0 4px;
-
-  font-size: 16px;
+  margin: 0 0 3px;
 
   color: #f8fafc;
+
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .form-title p {
   margin: 0;
 
-  color: #7f889d;
+  color: #737d94;
 
-  font-size: 11px;
+  font-size: 9px;
 }
 
 .required-info {
-  color: #737c91;
+  color: #626d85;
 
-  font-size: 10px;
+  font-size: 9px;
 }
+
 
 /* ==========================================
    FORM SECTION
 ========================================== */
 
 .form-section {
-  padding: 25px;
+  padding: 20px;
 
-  border-bottom: 1px solid #252b3d;
+  border-bottom: 1px solid #242a3e;
 }
+
+
+/* ==========================================
+   SECTION HEADING
+========================================== */
 
 .section-heading {
   display: flex;
-
   align-items: center;
 
-  gap: 12px;
+  gap: 9px;
 
-  margin-bottom: 22px;
+  margin-bottom: 16px;
 }
 
 .section-heading > span {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
 
-  border-radius: 8px;
+  flex-shrink: 0;
 
   display: flex;
-
   align-items: center;
   justify-content: center;
+
+  border-radius: 7px;
 
   background: rgba(124, 58, 237, 0.14);
 
@@ -199,38 +222,40 @@
 
   color: #a78bfa;
 
-  font-size: 10px;
-
+  font-size: 9px;
   font-weight: 800;
 }
 
 .section-heading h3 {
-  margin: 0 0 3px;
+  margin: 0 0 2px;
 
   color: #e5e7eb;
 
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .section-heading p {
   margin: 0;
 
-  color: #727b90;
+  color: #68738c;
 
-  font-size: 10px;
+  font-size: 9px;
 }
 
+
 /* ==========================================
-   GRID
+   FORM GRID
 ========================================== */
 
 .form-grid {
   display: grid;
 
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
 
-  gap: 18px 20px;
+  gap: 14px 16px;
 }
+
 
 /* ==========================================
    FORM GROUP
@@ -238,16 +263,17 @@
 
 .form-group {
   display: flex;
-
   flex-direction: column;
 
-  gap: 7px;
+  gap: 5px;
+
+  min-width: 0;
 }
 
 .form-group label {
   color: #aeb6c7;
 
-  font-size: 11px;
+  font-size: 10px;
 
   font-weight: 650;
 }
@@ -255,6 +281,7 @@
 .form-group label span {
   color: #f87171;
 }
+
 
 /* ==========================================
    INPUT / SELECT / TEXTAREA
@@ -267,23 +294,39 @@
 
   box-sizing: border-box;
 
+  padding: 9px 10px;
+
   border: 1px solid #2a3144;
+
+  border-radius: 7px;
+
+  outline: none;
 
   background: #111625;
 
   color: #e5e7eb;
 
-  border-radius: 8px;
-
-  padding: 11px 12px;
-
-  outline: none;
-
-  font-size: 12px;
-
   font-family: inherit;
 
+  font-size: 10px;
+
   transition: 0.2s ease;
+}
+
+.form-group input {
+  height: 37px;
+}
+
+.form-group select {
+  height: 37px;
+
+  cursor: pointer;
+}
+
+.form-group textarea {
+  min-height: 82px;
+
+  resize: vertical;
 }
 
 .form-group input::placeholder,
@@ -302,16 +345,10 @@
 .form-group textarea:focus {
   border-color: #7c3aed;
 
-  box-shadow:
-    0 0 0 3px rgba(124, 58, 237, 0.12);
-
   background: #12182a;
-}
 
-/* SELECT */
-
-.form-group select {
-  cursor: pointer;
+  box-shadow:
+    0 0 0 2px rgba(124, 58, 237, 0.12);
 }
 
 .form-group select option {
@@ -320,42 +357,35 @@
   color: #f8fafc;
 }
 
-/* TEXTAREA */
-
-.form-group textarea {
-  min-height: 100px;
-
-  resize: vertical;
-}
 
 /* ==========================================
    CHECKBOX
 ========================================== */
 
 .checkbox-label {
-  min-height: 40px;
+  min-height: 37px;
 
   box-sizing: border-box;
 
   display: flex !important;
-
   align-items: center;
 
-  gap: 9px;
+  gap: 8px;
+
+  padding: 0 10px;
 
   border: 1px solid #2a3144;
 
+  border-radius: 7px;
+
   background: #111625;
-
-  border-radius: 8px;
-
-  padding: 0 12px;
-
-  cursor: pointer;
 
   color: #aeb6c7 !important;
 
+  font-size: 10px !important;
   font-weight: 500 !important;
+
+  cursor: pointer;
 
   transition: 0.2s ease;
 }
@@ -367,26 +397,32 @@
 }
 
 .checkbox-label input {
-  width: 16px;
-  height: 16px;
+  width: 14px !important;
+  height: 14px !important;
+
+  padding: 0;
 
   accent-color: #7c3aed;
+
+  cursor: pointer;
 }
+
 
 /* ==========================================
    AMOUNT INPUT
 ========================================== */
 
 .amount-input {
-  display: flex;
+  height: 37px;
 
+  display: flex;
   align-items: center;
+
+  overflow: hidden;
 
   border: 1px solid #2a3144;
 
-  border-radius: 8px;
-
-  overflow: hidden;
+  border-radius: 7px;
 
   background: #111625;
 
@@ -397,34 +433,38 @@
   border-color: #7c3aed;
 
   box-shadow:
-    0 0 0 3px rgba(124, 58, 237, 0.12);
+    0 0 0 2px rgba(124, 58, 237, 0.12);
 }
 
 .amount-input > span {
-  width: 38px;
-  height: 40px;
+  width: 34px;
+  height: 100%;
+
+  flex-shrink: 0;
 
   display: flex;
-
   align-items: center;
   justify-content: center;
 
+  border-right: 1px solid #252b3d;
+
   color: #7f889d;
 
-  font-size: 13px;
-
-  border-right: 1px solid #252b3d;
+  font-size: 11px;
 }
 
 .amount-input input {
+  height: 100%;
+
   border: none;
 
   border-radius: 0;
 
-  box-shadow: none !important;
-
   background: transparent;
+
+  box-shadow: none !important;
 }
+
 
 /* ==========================================
    TOTAL
@@ -443,149 +483,147 @@
 }
 
 .total-input input {
-  background: transparent;
+  color: #c4b5fd;
 
   font-weight: 700;
-
-  color: #c4b5fd;
 }
 
 .total-help {
-  font-size: 9px;
+  margin-top: -2px;
 
   color: #687187;
 
-  margin-top: -2px;
+  font-size: 8px;
 }
+
 
 /* ==========================================
    ERROR
 ========================================== */
 
 .form-error {
-  margin: 20px 25px 0;
+  margin: 15px 20px 0;
 
-  padding: 12px 14px;
-
-  border-radius: 8px;
+  padding: 9px 11px;
 
   display: flex;
-
   align-items: center;
 
-  gap: 9px;
-
-  color: #fca5a5;
-
-  background: rgba(127, 29, 29, 0.18);
+  gap: 8px;
 
   border: 1px solid rgba(239, 68, 68, 0.25);
 
-  font-size: 11px;
+  border-radius: 7px;
 
+  background: rgba(127, 29, 29, 0.18);
+
+  color: #fca5a5;
+
+  font-size: 9px;
   font-weight: 600;
 }
 
 .form-error span {
-  width: 19px;
-  height: 19px;
+  width: 17px;
+  height: 17px;
 
-  border-radius: 50%;
+  flex-shrink: 0;
 
   display: flex;
-
   align-items: center;
   justify-content: center;
 
-  background: rgba(239, 68, 68, 0.18);
+  border-radius: 50%;
 
-  flex-shrink: 0;
+  background: rgba(239, 68, 68, 0.18);
 }
+
 
 /* ==========================================
    SUCCESS
 ========================================== */
 
 .form-success {
-  margin: 20px 25px 0;
+  margin: 15px 20px 0;
 
-  padding: 12px 14px;
-
-  border-radius: 8px;
+  padding: 9px 11px;
 
   display: flex;
-
   align-items: center;
 
-  gap: 9px;
-
-  color: #6ee7b7;
-
-  background: rgba(5, 150, 105, 0.12);
+  gap: 8px;
 
   border: 1px solid rgba(16, 185, 129, 0.25);
 
-  font-size: 11px;
+  border-radius: 7px;
 
+  background: rgba(5, 150, 105, 0.12);
+
+  color: #6ee7b7;
+
+  font-size: 9px;
   font-weight: 600;
 }
 
 .form-success span {
-  width: 19px;
-  height: 19px;
+  width: 17px;
+  height: 17px;
 
-  border-radius: 50%;
+  flex-shrink: 0;
 
   display: flex;
-
   align-items: center;
   justify-content: center;
 
-  background: rgba(16, 185, 129, 0.15);
+  border-radius: 50%;
 
-  flex-shrink: 0;
+  background: rgba(16, 185, 129, 0.15);
 }
+
 
 /* ==========================================
    BUTTON AREA
 ========================================== */
 
 .form-buttons {
-  padding: 22px 25px;
+  padding: 16px 20px;
 
   display: flex;
-
   justify-content: flex-end;
 
-  gap: 10px;
+  gap: 8px;
 
   background: #0c111e;
 }
+
 
 /* ==========================================
    CANCEL
 ========================================== */
 
-.cancel-button {
-  min-width: 120px;
+.cancel-button,
+.submit-button {
+  min-width: 105px;
 
-  border: 1px solid #2a3144;
+  padding: 9px 14px;
 
-  background: #111625;
+  border-radius: 7px;
 
-  color: #aeb6c7;
-
-  border-radius: 8px;
-
-  padding: 11px 18px;
-
-  font-size: 12px;
+  font-size: 10px;
 
   font-weight: 650;
 
   cursor: pointer;
 
   transition: 0.2s ease;
+}
+
+.cancel-button {
+  border: 1px solid #2a3144;
+
+  background: #111625;
+
+  color: #aeb6c7;
 }
 
 .cancel-button:hover {
@@ -596,18 +634,13 @@
   color: #e5e7eb;
 }
 
+
 /* ==========================================
    SUBMIT
 ========================================== */
 
 .submit-button {
-  min-width: 120px;
-
   border: none;
-
-  border-radius: 8px;
-
-  padding: 11px 18px;
 
   background: linear-gradient(
     135deg,
@@ -617,16 +650,8 @@
 
   color: white;
 
-  font-size: 12px;
-
-  font-weight: 650;
-
-  cursor: pointer;
-
   box-shadow:
-    0 6px 18px rgba(124, 58, 237, 0.25);
-
-  transition: 0.2s ease;
+    0 5px 15px rgba(124, 58, 237, 0.22);
 }
 
 .submit-button:hover:not(:disabled) {
@@ -637,9 +662,6 @@
   );
 
   transform: translateY(-1px);
-
-  box-shadow:
-    0 8px 22px rgba(124, 58, 237, 0.3);
 }
 
 .submit-button:disabled,
@@ -649,6 +671,7 @@
   cursor: not-allowed;
 }
 
+
 /* ==========================================
    SPINNER
 ========================================== */
@@ -656,8 +679,10 @@
 .button-spinner {
   display: inline-block;
 
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
+
+  margin-right: 6px;
 
   border: 2px solid rgba(255, 255, 255, 0.35);
 
@@ -665,112 +690,297 @@
 
   border-radius: 50%;
 
-  animation: spin 0.7s linear infinite;
-
-  margin-right: 7px;
+  animation: add-member-spin 0.7s linear infinite;
 
   vertical-align: -2px;
 }
 
-@keyframes spin {
+@keyframes add-member-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
-/* ==========================================
-   RESPONSIVE
-========================================== */
 
-@media (max-width: 750px) {
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
   .add-member-page {
-    padding: 20px 14px 35px;
+    padding: 20px;
+  }
+
+  .add-member-header,
+  .add-member-card {
+    max-width: 100%;
+  }
+
+  .form-section {
+    padding: 18px;
+  }
+
+  .form-grid {
+    gap: 12px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .add-member-page {
+    padding: 14px 10px 25px;
   }
 
   .add-member-header {
     align-items: flex-start;
 
     flex-direction: column;
+
+    gap: 10px;
+
+    margin-bottom: 13px;
+  }
+
+  .add-member-header h1 {
+    font-size: 21px;
+  }
+
+  .add-member-header p {
+    font-size: 9px;
   }
 
   .back-button {
     width: 100%;
-  }
 
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
+    padding: 8px;
 
-  .form-title {
-    padding: 17px;
-  }
-
-  .form-section {
-    padding: 20px 17px;
-  }
-
-  .form-buttons {
-    padding: 18px 17px;
-  }
-
-  .cancel-button,
-  .submit-button {
-    flex: 1;
-  }
-
-  .form-error,
-  .form-success {
-    margin-left: 17px;
-
-    margin-right: 17px;
-  }
-}
-
-/* ==========================================
-   SMALL MOBILE
-========================================== */
-
-@media (max-width: 500px) {
-  .add-member-page {
-    padding: 15px 10px 30px;
-  }
-
-  .add-member-header h1 {
-    font-size: 24px;
+    font-size: 9px;
   }
 
   .add-member-card {
-    border-radius: 11px;
+    border-radius: 10px;
   }
 
   .form-title {
     min-height: auto;
 
+    padding: 13px;
+
     align-items: flex-start;
 
     flex-direction: column;
 
-    gap: 8px;
+    gap: 5px;
   }
 
+  .form-title h2 {
+    font-size: 12px;
+  }
+
+  .form-title p,
   .required-info {
-    align-self: flex-start;
+    font-size: 8px;
   }
 
   .form-section {
-    padding: 18px 14px;
+    padding: 14px 13px;
   }
 
   .section-heading {
-    margin-bottom: 18px;
+    margin-bottom: 13px;
+
+    gap: 8px;
+  }
+
+  .section-heading > span {
+    width: 25px;
+    height: 25px;
+
+    font-size: 8px;
+  }
+
+  .section-heading h3 {
+    font-size: 11px;
+  }
+
+  .section-heading p {
+    font-size: 8px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+
+    gap: 10px;
+  }
+
+  .form-group {
+    gap: 4px;
+  }
+
+  .form-group label {
+    font-size: 9px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 9px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .amount-input {
+    height: 35px;
+  }
+
+  .form-group textarea {
+    min-height: 70px;
+  }
+
+  .checkbox-label {
+    min-height: 35px;
+
+    font-size: 9px !important;
+  }
+
+  .form-error,
+  .form-success {
+    margin: 12px 13px 0;
+
+    padding: 8px 9px;
+
+    font-size: 8px;
   }
 
   .form-buttons {
+    padding: 13px;
+
     flex-direction: column;
+
+    gap: 7px;
   }
 
   .cancel-button,
   .submit-button {
     width: 100%;
+
+    min-width: 0;
+
+    padding: 9px;
+
+    font-size: 9px;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 450px) {
+
+  .add-member-page {
+    padding: 10px 7px 20px;
+  }
+
+  .add-member-header {
+    margin-bottom: 10px;
+  }
+
+  .page-badge {
+    padding: 4px 7px;
+
+    margin-bottom: 5px;
+
+    font-size: 7px;
+  }
+
+  .add-member-header h1 {
+    font-size: 19px;
+  }
+
+  .add-member-header p {
+    font-size: 8px;
+  }
+
+  .back-button {
+    padding: 7px;
+
+    font-size: 8px;
+  }
+
+  .add-member-card {
+    border-radius: 8px;
+  }
+
+  .form-title {
+    padding: 11px;
+  }
+
+  .form-section {
+    padding: 12px 11px;
+  }
+
+  .section-heading > span {
+    width: 23px;
+    height: 23px;
+  }
+
+  .form-grid {
+    gap: 9px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .amount-input {
+    height: 33px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 8px;
+
+    font-size: 8px;
+  }
+
+  .form-group textarea {
+    min-height: 65px;
+  }
+
+  .checkbox-label {
+    min-height: 33px;
+
+    padding: 0 8px;
+
+    font-size: 8px !important;
+  }
+
+  .checkbox-label input {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  .amount-input > span {
+    width: 30px;
+
+    font-size: 10px;
+  }
+
+  .form-buttons {
+    padding: 11px;
+  }
+
+  .cancel-button,
+  .submit-button {
+    padding: 8px;
+
+    font-size: 8px;
   }
 }

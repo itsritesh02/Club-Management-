@@ -131,9 +131,7 @@ function Login() {
 
       <div className="login-left">
 
-        <div className="login-brand">
-          Club<span>Manager</span>
-        </div>
+        
 
         <div className="login-intro">
 
@@ -142,14 +140,13 @@ function Login() {
           </p>
 
           <h1>
-            Welcome Back,
-            <br />
-            Admin
+            Welcome Back
+            
           </h1>
 
           <p>
             Login to manage your club,
-            members, payments and reports.
+            members and reports.
           </p>
 
         </div>

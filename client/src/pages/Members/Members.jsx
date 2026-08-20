@@ -1,6 +1,6 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
 
 import "./Members.css";
 
@@ -11,19 +11,8 @@ function Members() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [deleteLoading, setDeleteLoading] = useState(null);
-
   // ==========================================
-  // API BASE URL
-  // ==========================================
-
-  const API_URL = (
-    import.meta.env.VITE_API_URL ||
-    "http://localhost:5000"
-  ).replace(/\/$/, "");
-
-  // ==========================================
-  // GET MEMBERS
+  // FETCH MEMBERS
   // ==========================================
 
   const fetchMembers = async () => {
@@ -39,27 +28,17 @@ function Members() {
       }
 
       const response = await fetch(
-        `${API_URL}/api/members`,
+        "http://localhost:5000/api/members",
         {
           method: "GET",
-
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${ token } `,
           },
         }
       );
 
-      let data = {};
-
-      try {
-        data = await response.json();
-      } catch {
-        data = {};
-      }
-
-      // ======================================
-      // TOKEN EXPIRED
-      // ======================================
+      const data = await response.json();
 
       if (response.status === 401) {
         localStorage.removeItem("adminToken");
@@ -69,870 +48,697 @@ function Members() {
         return;
       }
 
-      // ======================================
-      // ERROR
-      // ======================================
-
       if (!response.ok) {
-        setError(
-          data.message || "Failed to fetch entries"
+        throw new Error(
+          data.message || "Failed to fetch members"
         );
-
-        return;
       }
 
       setMembers(data.members || []);
-    } catch (error) {
-      console.error("GET MEMBERS ERROR:", error);
+    } catch (err) {
+      console.error("GET MEMBERS ERROR:", err);
 
       setError(
-        "Unable to connect to server. Please try again."
+        err.message || "Something went wrong"
       );
     } finally {
       setLoading(false);
     }
   };
 
-  // ==========================================
-  // LOAD MEMBERS
-  // ==========================================
-
   useEffect(() => {
     fetchMembers();
   }, []);
 
   // ==========================================
-  // LOGOUT
-  // ==========================================
-
-  const handleLogout = async () => {
-    const result = await Swal.fire({
-      icon: "question",
-      title: "Logout?",
-      text: "Are you sure you want to logout?",
-      showCancelButton: true,
-      confirmButtonText: "Yes, Logout",
-      cancelButtonText: "Cancel",
-      reverseButtons: true,
-    });
-
-    if (!result.isConfirmed) {
-      return;
-    }
-
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("admin");
-
-    await Swal.fire({
-      icon: "success",
-      title: "Logged Out",
-      text: "You have been logged out successfully.",
-      timer: 1200,
-      showConfirmButton: false,
-    });
-
-    navigate("/");
-  };
-
-  // ==========================================
-  // ADD ENTRY
-  // ==========================================
-
-  const handleAddMember = () => {
-    navigate("/members/add");
-  };
-
-  // ==========================================
-  // VIEW MEMBER
-  // ==========================================
-
-  const handleViewMember = (id) => {
-    navigate(`/members/${id}`);
-  };
-
-  // ==========================================
   // DELETE MEMBER
   // ==========================================
 
-  const handleDeleteMember = async (id) => {
-    const result = await Swal.fire({
-      icon: "warning",
-      title: "Delete Entry?",
-      text:
-        "Are you sure you want to delete this entry? This action cannot be undone.",
-      showCancelButton: true,
-      confirmButtonText: "Yes, Delete",
-      cancelButtonText: "Cancel",
-      confirmButtonColor: "#dc2626",
-      cancelButtonColor: "#6b7280",
-      reverseButtons: true,
-    });
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this member?"
+    );
 
-    if (!result.isConfirmed) {
-      return;
-    }
+    if (!confirmDelete) return;
 
     try {
-      setDeleteLoading(id);
-      setError("");
-
       const token = localStorage.getItem("adminToken");
 
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
-      // ======================================
-      // IMPORTANT:
-      // DO NOT USE localhost HERE
-      // ======================================
-
       const response = await fetch(
-        `${API_URL}/api/members/${id}`,
-        {
-          method: "DELETE",
+        `http://localhost:5000/api/members/${id}`,
+{
+  method: "DELETE",
 
-          headers: {
-            Authorization: `Bearer ${token}`,
+    headers: {
+    "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
           },
-        }
+}
       );
 
-      let data = {};
+const data = await response.json();
 
-      try {
-        data = await response.json();
-      } catch {
-        data = {};
-      }
+if (!response.ok) {
+  throw new Error(
+    data.message || "Failed to delete member"
+  );
+}
 
-      // ======================================
-      // TOKEN EXPIRED
-      // ======================================
+setMembers((prev) =>
+  prev.filter(
+    (member) => member._id !== id
+  )
+);
+    } catch (err) {
+  console.error(
+    "DELETE MEMBER ERROR:",
+    err
+  );
 
-      if (response.status === 401) {
-        localStorage.removeItem("adminToken");
-        localStorage.removeItem("admin");
+  alert(
+    err.message ||
+    "Failed to delete member"
+  );
+}
+  };
 
-        navigate("/login");
-        return;
-      }
+// ==========================================
+// LOGOUT
+// ==========================================
 
-      // ======================================
-      // DELETE ERROR
-      // ======================================
+const handleLogout = () => {
+  localStorage.removeItem("adminToken");
+  localStorage.removeItem("admin");
 
-      if (!response.ok) {
-        const message =
-          data.message || "Failed to delete entry";
+  navigate("/");
+};
 
-        setError(message);
+// ==========================================
+// HELPERS
+// ==========================================
 
-        await Swal.fire({
-          icon: "error",
-          title: "Delete Failed",
-          text: message,
-          confirmButtonText: "OK",
-        });
+const getInitial = (name) => {
+  if (!name) return "M";
 
-        return;
-      }
+  return name
+    .charAt(0)
+    .toUpperCase();
+};
 
-      // ======================================
-      // REMOVE FROM UI
-      // ======================================
+const formatDate = (date) => {
+  if (!date) return "-";
 
-      setMembers((prev) =>
-        prev.filter(
-          (member) => member._id !== id
-        )
-      );
-
-      // ======================================
-      // SUCCESS
-      // ======================================
-
-      await Swal.fire({
-        icon: "success",
-        title: "Deleted Successfully",
-        text: "The entry has been deleted successfully.",
-        timer: 1800,
-        showConfirmButton: false,
-      });
-    } catch (error) {
-      console.error(
-        "DELETE MEMBER ERROR:",
-        error
-      );
-
-      setError(
-        "Unable to delete entry. Please try again."
-      );
-
-      await Swal.fire({
-        icon: "error",
-        title: "Delete Failed",
-        text:
-          "Unable to delete entry. Please try again.",
-        confirmButtonText: "OK",
-      });
-    } finally {
-      setDeleteLoading(null);
+  return new Date(date).toLocaleDateString(
+    "en-IN",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
     }
-  };
+  );
+};
 
-  // ==========================================
-  // FORMAT DATE
-  // ==========================================
+// ==========================================
+// STATS
+// ==========================================
 
-  const formatDate = (date) => {
-    if (!date) {
-      return "-";
-    }
+const totalMembers = members.length;
 
-    return new Date(date).toLocaleDateString(
-      "en-IN",
-      {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }
-    );
-  };
+const activeMembers = members.filter(
+  (member) =>
+    !member.status ||
+    member.status.toLowerCase() ===
+    "active"
+).length;
 
-  // ==========================================
-  // FORMAT DATE TIME
-  // ==========================================
+const vipMembers = members.filter(
+  (member) =>
+    member.membershipType?.toLowerCase() ===
+    "vip"
+).length;
 
-  const formatDateTime = (date) => {
-    if (!date) {
-      return "-";
-    }
+const vvipMembers = members.filter(
+  (member) =>
+    member.membershipType?.toLowerCase() ===
+    "vvip"
+).length;
 
-    return new Date(date).toLocaleString(
-      "en-IN",
-      {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }
-    );
-  };
+// ==========================================
+// LOADING
+// ==========================================
 
-  // ==========================================
-  // CATEGORY CLASS
-  // ==========================================
-
-  const getCategoryClass = (category) => {
-    return (
-      category
-        ?.toLowerCase()
-        .replace(/\s+/g, "-") || "normal"
-    );
-  };
-
-  // ==========================================
-  // UI
-  // ==========================================
-
+if (loading) {
   return (
     <div className="members-page">
 
-      {/* ======================================
-          SIDEBAR
-      ====================================== */}
-
       <aside className="members-sidebar">
 
-        <div className="members-logo">
-          Club<span>Manager</span>
+        <div className="members-brand">
+          <div className="members-brand-logo">
+            JC
+          </div>
+
+          <div>
+            <strong>
+              Jaguar Club
+            </strong>
+
+            <span>
+              Management
+            </span>
+          </div>
         </div>
-
-        <nav className="members-nav">
-
-          <button
-            type="button"
-            onClick={() =>
-              navigate("/dashboard")
-            }
-          >
-            <span>📊</span>
-            <span>Dashboard</span>
-          </button>
-
-          <button
-            type="button"
-            className="active"
-          >
-            <span>👥</span>
-            <span>Members</span>
-          </button>
-
-        </nav>
-
-        <button
-          type="button"
-          className="members-logout"
-          onClick={handleLogout}
-        >
-          <span>🚪</span>
-          Logout
-        </button>
 
       </aside>
 
-      {/* ======================================
-          MAIN
-      ====================================== */}
-
       <main className="members-main">
 
-        {/* HEADER */}
-
-        <header className="members-header">
-
-          <div>
-
-            <div className="page-breadcrumb">
-              Club Management
-              <span>/</span>
-              Members
-            </div>
-
-            <h1>
-              Members & Entries
-            </h1>
-
-            <p>
-              Manage all club guest
-              entries and bookings.
-            </p>
-
+        <div className="members-loading">
+          <div className="loading-spinner">
+            ⟳
           </div>
 
-        </header>
-
-        {/* ERROR */}
-
-        {error && (
-          <div className="members-error">
-
-            <span>⚠️</span>
-
-            <span>
-              {error}
-            </span>
-
-            <button
-              type="button"
-              onClick={() =>
-                setError("")
-              }
-            >
-              ×
-            </button>
-
-          </div>
-        )}
-
-        {/* ====================================
-            STATS
-        ==================================== */}
-
-        {!loading && (
-          <section className="members-stats">
-
-            <div className="member-stat-card">
-
-              <div className="member-stat-icon">
-                👥
-              </div>
-
-              <div>
-
-                <span>
-                  Total Entries
-                </span>
-
-                <strong>
-                  {members.length}
-                </strong>
-
-              </div>
-
-            </div>
-
-            <div className="member-stat-card">
-
-              <div className="member-stat-icon">
-                🎟️
-              </div>
-
-              <div>
-
-                <span>
-                  Total Pax
-                </span>
-
-                <strong>
-                  {members.reduce(
-                    (total, member) =>
-                      total +
-                      (Number(
-                        member.paxCount
-                      ) || 0),
-                    0
-                  )}
-                </strong>
-
-              </div>
-
-            </div>
-
-            <div className="member-stat-card">
-
-              <div className="member-stat-icon">
-                💰
-              </div>
-
-              <div>
-
-                <span>
-                  Total Revenue
-                </span>
-
-                <strong>
-                  ₹
-                  {members
-                    .reduce(
-                      (total, member) =>
-                        total +
-                        (Number(
-                          member.totalAmount
-                        ) || 0),
-                      0
-                    )
-                    .toLocaleString("en-IN")}
-                </strong>
-
-              </div>
-
-            </div>
-
-            <div className="member-stat-card">
-
-              <div className="member-stat-icon">
-                ✉️
-              </div>
-
-              <div>
-
-                <span>
-                  Emails Sent
-                </span>
-
-                <strong>
-                  {
-                    members.filter(
-                      (member) =>
-                        member.emailSent
-                    ).length
-                  }
-                </strong>
-
-              </div>
-
-            </div>
-
-          </section>
-        )}
-
-        {/* ====================================
-            MEMBERS CARD
-        ==================================== */}
-
-        {loading ? (
-
-          <div className="members-loading">
-
-            <div className="loading-spinner">
-              ⟳
-            </div>
-
-            <p>
-              Loading entries...
-            </p>
-
-          </div>
-
-        ) : (
-
-          <section className="members-card">
-
-            {/* CARD HEADER */}
-
-            <div className="members-card-header">
-
-              <div>
-
-                <h2>
-                  All Entries
-                </h2>
-
-                <p>
-                  {members.length === 0
-                    ? "No entries available"
-                    : `${members.length} ${members.length === 1
-                      ? "entry"
-                      : "entries"
-                    } registered`}
-                </p>
-
-              </div>
-
-              <div className="members-card-actions">
-
-                <button
-                  type="button"
-                  onClick={fetchMembers}
-                  className="refresh-button"
-                  disabled={loading}
-                >
-                  ↻
-                  <span>
-                    Refresh
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  className="card-add-button"
-                  onClick={handleAddMember}
-                >
-                  + Add Entry
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* ==================================
-                EMPTY
-            ================================== */}
-
-            {members.length === 0 ? (
-
-              <div className="members-empty">
-
-                <div className="members-empty-icon">
-                  👥
-                </div>
-
-                <h3>
-                  No Entries Yet
-                </h3>
-
-                <p>
-                  Start by adding your
-                  first club entry.
-                </p>
-
-                <button
-                  type="button"
-                  className="add-member-button"
-                  onClick={handleAddMember}
-                >
-                  + Create First Entry
-                </button>
-
-              </div>
-
-            ) : (
-
-              /* ==================================
-                 TABLE
-              ================================== */
-
-              <div className="members-table-wrapper">
-
-                <table className="members-table">
-
-                  <thead>
-
-                    <tr>
-
-                      <th>
-                        Guest
-                      </th>
-
-                      <th>
-                        Contact
-                      </th>
-
-                      <th>
-                        Category
-                      </th>
-
-                      <th>
-                        Pax
-                      </th>
-
-                      <th>
-                        Table
-                      </th>
-
-                      <th>
-                        Entry Time
-                      </th>
-
-                      <th>
-                        Cover
-                      </th>
-
-                      <th>
-                        Total
-                      </th>
-
-                      <th>
-                        Email
-                      </th>
-
-                      <th>
-                        Actions
-                      </th>
-
-                    </tr>
-
-                  </thead>
-
-                  <tbody>
-
-                    {members.map(
-                      (member) => (
-
-                        <tr
-                          key={member._id}
-                        >
-
-                          {/* GUEST */}
-
-                          <td>
-
-                            <div className="guest-info">
-
-                              <div className="guest-avatar">
-
-                                {member.name
-                                  ?.charAt(0)
-                                  ?.toUpperCase() ||
-                                  "G"}
-
-                              </div>
-
-                              <div>
-
-                                <strong>
-                                  {member.name}{" "}
-                                  {member.surname}
-                                </strong>
-
-                                <small>
-                                  {member.email}
-                                </small>
-
-                              </div>
-
-                            </div>
-
-                          </td>
-
-                          {/* CONTACT */}
-
-                          <td>
-                            {member.contact || "-"}
-                          </td>
-
-                          {/* CATEGORY */}
-
-                          <td>
-
-                            <span
-                              className={`category-badge ${getCategoryClass(
-                                member.category
-                              )}`}
-                            >
-                              {(
-                                member.category ||
-                                "normal"
-                              ).toUpperCase()}
-                            </span>
-
-                          </td>
-
-                          {/* PAX */}
-
-                          <td>
-
-                            <strong>
-                              {member.paxCount || 0}
-                            </strong>
-
-                            {member.couple && (
-                              <small className="couple-label">
-                                Couple
-                              </small>
-                            )}
-
-                          </td>
-
-                          {/* TABLE */}
-
-                          <td>
-
-                            <span className="table-badge">
-                              {member.tableNo || "-"}
-                            </span>
-
-                          </td>
-
-                          {/* ENTRY TIME */}
-
-                          <td>
-
-                            <span className="entry-time">
-                              {formatDateTime(
-                                member.entryTime
-                              )}
-                            </span>
-
-                          </td>
-
-                          {/* COVER */}
-
-                          <td>
-
-                            <div className="cover-info">
-
-                              <span>
-                                W:{" "}
-                                {member.withCover || 0}
-                              </span>
-
-                              <span>
-                                WO:{" "}
-                                {member.withoutCover || 0}
-                              </span>
-
-                            </div>
-
-                          </td>
-
-                          {/* TOTAL */}
-
-                          <td>
-
-                            <strong className="total-amount">
-
-                              ₹
-                              {(
-                                Number(
-                                  member.totalAmount
-                                ) || 0
-                              ).toLocaleString(
-                                "en-IN"
-                              )}
-
-                            </strong>
-
-                          </td>
-
-                          {/* EMAIL */}
-
-                          <td>
-
-                            {member.emailSent ? (
-
-                              <span className="email-status sent">
-                                ✓ Sent
-                              </span>
-
-                            ) : (
-
-                              <span className="email-status failed">
-                                ✕ Not Sent
-                              </span>
-
-                            )}
-
-                          </td>
-
-                          {/* ACTIONS */}
-
-                          <td>
-
-                            <div className="member-actions">
-
-                              <button
-                                type="button"
-                                className="view-button"
-                                title="View Entry"
-                                onClick={() =>
-                                  handleViewMember(
-                                    member._id
-                                  )
-                                }
-                              >
-                                👁
-                              </button>
-
-                              <button
-                                type="button"
-                                className="delete-button"
-                                title="Delete Entry"
-                                disabled={
-                                  deleteLoading ===
-                                  member._id
-                                }
-                                onClick={() =>
-                                  handleDeleteMember(
-                                    member._id
-                                  )
-                                }
-                              >
-                                {deleteLoading ===
-                                  member._id
-                                  ? "..."
-                                  : "🗑"}
-                              </button>
-
-                            </div>
-
-                          </td>
-
-                        </tr>
-
-                      )
-                    )}
-
-                  </tbody>
-
-                </table>
-
-              </div>
-
-            )}
-
-          </section>
-
-        )}
+          <p>
+            Loading members...
+          </p>
+        </div>
 
       </main>
 
     </div>
   );
+}
+
+return (
+  <div className="members-page">
+
+    {/* ==========================================
+          SIDEBAR
+      ========================================== */}
+
+    <aside className="members-sidebar">
+
+      
+
+
+      {/* NAVIGATION */}
+
+      <nav className="members-nav">
+
+        <button
+          type="button"
+          onClick={() =>
+            navigate("/dashboard")
+          }
+        >
+          <span className="nav-icon">
+            ▦
+          </span>
+
+          <span>
+            Dashboard
+          </span>
+        </button>
+
+
+        <button
+          type="button"
+          onClick={() =>
+            navigate("/members/add")
+          }
+        >
+          <span className="nav-icon">
+            +
+          </span>
+
+          <span>
+            Add Members
+          </span>
+        </button>
+
+
+        <button
+          type="button"
+          className="active"
+          onClick={() =>
+            navigate("/members")
+          }
+        >
+          <span className="nav-icon">
+            ♧
+          </span>
+
+          <span>
+            All Members
+          </span>
+        </button>
+
+      </nav>
+
+
+      {/* LOGOUT */}
+
+      <button
+        type="button"
+        className="members-logout"
+        onClick={handleLogout}
+      >
+        <span>
+          ↪
+        </span>
+
+        <span>
+          Logout
+        </span>
+      </button>
+
+    </aside>
+
+
+    {/* ==========================================
+          MAIN
+      ========================================== */}
+
+    <main className="members-main">
+
+      {/* ==========================================
+            HEADER
+        ========================================== */}
+
+      <header className="members-header">
+
+        <div>
+
+          <div className="page-breadcrumb">
+            DASHBOARD
+            <span>/</span>
+            MEMBERS
+          </div>
+
+          <h1>
+            All Members
+          </h1>
+
+          <p>
+            Manage all registered club members
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          className="add-member-button"
+          onClick={() =>
+            navigate("/members/add")
+          }
+        >
+          <span>+</span>
+          Add Member
+        </button>
+
+      </header>
+
+
+      {/* ==========================================
+            ERROR
+        ========================================== */}
+
+      {error && (
+        <div className="members-error">
+
+          <span>
+            ⚠
+          </span>
+
+          <span>
+            {error}
+          </span>
+
+          <button
+            type="button"
+            onClick={() =>
+              setError("")
+            }
+          >
+            ×
+          </button>
+
+        </div>
+      )}
+
+
+      {/* ==========================================
+            STATS
+        ========================================== */}
+
+      <section className="members-stats">
+
+        <div className="member-stat-card">
+
+          <div className="member-stat-icon">
+            ♧
+          </div>
+
+          <div>
+            <span>
+              Total Members
+            </span>
+
+            <strong>
+              {totalMembers}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <div className="member-stat-card">
+
+          <div className="member-stat-icon">
+            ✓
+          </div>
+
+          <div>
+            <span>
+              Active Members
+            </span>
+
+            <strong>
+              {activeMembers}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <div className="member-stat-card">
+
+          <div className="member-stat-icon">
+            ★
+          </div>
+
+          <div>
+            <span>
+              VIP Members
+            </span>
+
+            <strong>
+              {vipMembers}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <div className="member-stat-card">
+
+          <div className="member-stat-icon">
+            ◆
+          </div>
+
+          <div>
+            <span>
+              VVIP Members
+            </span>
+
+            <strong>
+              {vvipMembers}
+            </strong>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* ==========================================
+            MEMBERS CARD
+        ========================================== */}
+
+      <section className="members-card">
+
+        <div className="members-card-header">
+
+          <div>
+
+            <h2>
+              Members List
+            </h2>
+
+            <p>
+              All registered club members
+            </p>
+
+          </div>
+
+
+          <div className="members-card-actions">
+
+            <button
+              type="button"
+              className="refresh-button"
+              onClick={fetchMembers}
+            >
+              ↻
+              Refresh
+            </button>
+
+            <button
+              type="button"
+              className="card-add-button"
+              onClick={() =>
+                navigate("/members/add")
+              }
+            >
+              + Add Member
+            </button>
+
+          </div>
+
+        </div>
+
+
+        {/* ==========================================
+              EMPTY STATE
+          ========================================== */}
+
+        {members.length === 0 ? (
+
+          <div className="members-empty">
+
+            <div className="members-empty-icon">
+              ♧
+            </div>
+
+            <h3>
+              No Members Found
+            </h3>
+
+            <p>
+              Add your first member to
+              start managing the club.
+            </p>
+
+            <button
+              type="button"
+              className="add-member-button"
+              onClick={() =>
+                navigate("/members/add")
+              }
+            >
+              + Add Member
+            </button>
+
+          </div>
+
+        ) : (
+
+          <div className="members-table-wrapper">
+
+            <table className="members-table">
+
+              <thead>
+
+                <tr>
+                  <th>Member</th>
+                  <th>Phone</th>
+                  <th>Category</th>
+                  <th>Joined</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                {members.map(
+                  (member) => (
+
+                    <tr
+                      key={member._id}
+                    >
+
+                      {/* MEMBER */}
+
+                      <td>
+
+                        <div className="guest-info">
+
+                          <div className="guest-avatar">
+                            {getInitial(
+                              member.name
+                            )}
+                          </div>
+
+                          <div>
+
+                            <strong>
+                              {member.name ||
+                                "Unknown"}
+                            </strong>
+
+                            <small>
+                              {member.email ||
+                                "No email"}
+                            </small>
+
+                          </div>
+
+                        </div>
+
+                      </td>
+
+
+                      {/* PHONE */}
+
+                      <td>
+                        {member.phone || "-"}
+                      </td>
+
+
+                      {/* CATEGORY */}
+
+                      <td>
+
+                        <span
+                          className={`category-badge ${member.membershipType?.toLowerCase() ===
+                              "vip"
+                              ? "vip"
+                              : member.membershipType?.toLowerCase() ===
+                                "vvip"
+                                ? "vvip"
+                                : "normal"
+                            }`}
+                        >
+                          {member.membershipType ||
+                            "Normal"}
+                        </span>
+
+                      </td>
+
+
+                      {/* JOINED */}
+
+                      <td>
+                        <span className="entry-time">
+                          {formatDate(
+                            member.createdAt
+                          )}
+                        </span>
+                      </td>
+
+
+                      {/* STATUS */}
+
+                      <td>
+
+                        <span
+                          className={`status-badge ${member.status?.toLowerCase() ===
+                              "inactive"
+                              ? "inactive"
+                              : "active"
+                            }`}
+                        >
+                          {member.status ||
+                            "Active"}
+                        </span>
+
+                      </td>
+
+
+                      {/* ACTIONS */}
+
+                      <td>
+
+                        <div className="member-actions">
+
+                          <button
+                            type="button"
+                            className="view-button"
+                            title="View Member"
+                            onClick={() =>
+                              navigate(
+                                `/members/${member._id}`
+                              )
+                            }
+                          >
+                            👁
+                          </button>
+
+
+                          <button
+                            type="button"
+                            className="edit-button"
+                            title="Edit Member"
+                            onClick={() =>
+                              navigate(
+                                `/members/edit/${member._id}`
+                              )
+                            }
+                          >
+                            ✎
+                          </button>
+
+
+                          <button
+                            type="button"
+                            className="delete-button"
+                            title="Delete Member"
+                            onClick={() =>
+                              handleDelete(
+                                member._id
+                              )
+                            }
+                          >
+                            ×
+                          </button>
+
+                        </div>
+
+                      </td>
+
+                    </tr>
+
+                  )
+                )}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        )}
+
+      </section>
+
+    </main>
+
+  </div>
+);
 }
 
 export default Members;
